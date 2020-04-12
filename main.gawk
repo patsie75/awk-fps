@@ -23,13 +23,57 @@ function input() {
   return(key)
 }
 
+function loadMap(map, fname,     line, x, y) {
+  map["width"] = 0
+  map["height"] = 0
+
+  while ((getline line < fname) > 0) {
+    linenr++
+
+    # skip empty lines
+    if (length(line) == 0) continue
+
+    # check line length (map width)
+    if (!map["width"]) map["width"] = length(line)
+    else if (map["width"] != length(line)) {
+      printf("Error: line %d, file \"%s\", invalid line length (%d != %d)\n", linenr, fname, length(line), map["width"])
+      exit 1
+    }
+
+    y = linenr - 1
+    for (x=0; x<map["width"]; x++)
+      map[y*map["width"]+x] = substr(line, x+1, 1)
+  }
+  map["height"] = linenr
+
+  close(fname)
+}
 
 BEGIN {
-wall[" "] = "0;0;0"
-wall["1"] = "255;0;0"
-wall["2"] = "0;255;0"
-wall["3"] = "0;0;255"
-wall["4"] = "255;255;255"
+  COL_BLACK    = "0;0;0"
+  COL_RED      = "255;0;0"
+  COL_DRED     = "128;0;0"
+  COL_GREEN    = "0;255;0"
+  COL_DGREEN   = "0;128;0"
+  COL_YELLOW   = "255;255;0"
+  COL_DYELLOW  = "128;128;0"
+  COL_BLUE     = "0;0;255"
+  COL_DBLUE    = "0;0;128"
+  COL_CYAN     = "255;0;255"
+  COL_DCYAN    = "128;0;128"
+  COL_MAGENTA  = "0;255;255"
+  COL_DMAGENTA = "0;128;128"
+  COL_WHITE    = "255;255;255"
+  COL_GRAY     = "128;128;128"
+
+  wall[" "] = COL_BLACK
+  wall["1"] = COL_RED
+  wall["2"] = COL_GREEN
+  wall["3"] = COL_YELLOW
+  wall["4"] = COL_BLUE
+  wall["5"] = COL_CYAN
+  wall["6"] = COL_MAGENTA
+  wall["7"] = COL_WHITE
 
   KEY_QUIT = "Q"
   KEY_MOVF = "w"
@@ -41,46 +85,9 @@ wall["4"] = "255;255;255"
 
   init(scr)
 
-  mapWidth = 32
-  mapHeight = 32
-
-  mapStr = \
-    "43434111111111111111111111111113" \
-    "1   3                          1" \
-    "4   4                   1 2 3  3" \
-    "1   3                          1" \
-    "4   4   23232     1     3 4 1  3" \
-    "1   3   4         1            1" \
-    "4       4         1     2 3 4  3" \
-    "1       4         1            1" \
-    "4       4         1            3" \
-    "131313134         1212121211   1" \
-    "1                          1   3" \
-    "2           12             3   1" \
-    "1           34             1   3" \
-    "2                          3   1" \
-    "1       3         2121212121   3" \
-    "1       1                      2" \
-    "1       2                      4" \
-    "1       1                      2" \
-    "121212121       21212  41314   4" \
-    "1       2       1   1  1   1   2" \
-    "4       1       1   1  411 4   4" \
-    "1       2       21212    1 1   2" \
-    "4       1                4 4   4" \
-    "1       2                141   2" \
-    "4       1                      4" \
-    "1       2                      2" \
-    "4       12341234123412341234   4" \
-    "1                              2" \
-    "4                              4" \
-    "1                              2" \
-    "41414141414141414141414141414141"
-
-  # convert map string to array
-  for (y=0; y<mapHeight; y++)
-    for (x=0; x<mapWidth; x++)
-      worldMap[y*mapWidth+x] = substr(mapStr, y*mapWidth+x+1, 1)
+  loadMap(worldMap, "maps/level1.map")
+  mapWidth = worldMap["width"]
+  mapHeight = worldMap["height"]
 
   # player position
   posX = 22
@@ -180,21 +187,15 @@ wall["4"] = "255;255;255"
 
       # color to draw
       switch(worldMap[mapY*mapHeight+mapX]) {
-        case "1":
-          color = side ? "255;0;0" : "128;0;0"
-          break
+        case "1": color = side ? COL_RED : COL_DRED; break
+        case "2": color = side ? COL_GREEN : COL_DGREEN; break
+        case "3": color = side ? COL_YELLOW : COL_DYELLOW; break
+        case "4": color = side ? COL_BLUE : COL_DBLUE; break
+        case "5": color = side ? COL_MAGENTA : COL_DMAGENTA; break
+        case "6": color = side ? COL_CYAN : COL_DCYAN; break
 
-        case "2":
-          color = side ? "0;255;0" : "0;128;0"
-          break
-
-        case "3":
-          color = side ? "0;0;255" : "0;0;128"
-          break
-
-        default:
-          color = side ? "255;255;255" : "128;128;128"
-      }
+        default: color = side ? COL_WHITE : COL_GRAY
+ }
 
 #printf("vline(scr, %d, %d, \"%s\")\n", drawStart, (drawEnd-drawStart), color)
       vline(scr, x, drawStart, (drawEnd-drawStart), color)
