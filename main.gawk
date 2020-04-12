@@ -2,6 +2,17 @@
 
 @include "lib/2d.gawk"
 
+function miniMap(scr, posX, posY,    x,y) {
+  for (y=-5; y<5; y++) {
+    for (x=-5; x<5; x++) {
+      c = worldMap[int(posY+y)*mapWidth+int(posX+x)]
+      pixel(scr, x+5,y+5, wall[c])
+#printf("[%3d,%3d] = %s / [%3d,%3d] (%s)\n", x, y, c, (posX+x), (posY+y), wall[c])
+    }
+#printf("\n")
+  }
+}
+
 function input() {
   system("stty -echo")
   cmd = "saved=$(stty -g); stty raw; var=$(dd bs=1 count=1 2>/dev/null); stty \"$saved\"; echo \"$var\""
@@ -14,6 +25,12 @@ function input() {
 
 
 BEGIN {
+wall[" "] = "0;0;0"
+wall["1"] = "255;0;0"
+wall["2"] = "0;255;0"
+wall["3"] = "0;0;255"
+wall["4"] = "255;255;255"
+
   KEY_QUIT = "Q"
   KEY_MOVF = "w"
   KEY_MOVB = "s"
@@ -23,9 +40,6 @@ BEGIN {
   KEY_ROTR = "l"
 
   init(scr)
-
-  scr["width"] = scr["width"]
-  scr["height"] = scr["height"]
 
   mapWidth = 32
   mapHeight = 32
@@ -86,40 +100,6 @@ BEGIN {
   frameNr = 0
   while ("awk" != "difficult") {
 #  while (frameNr++ < 100) {
-
-    key = input()
-
-    if (key == KEY_QUIT) { exit 0 }
-
-    if (key == KEY_ROTL) {
-      oldDirX = dirX;
-      dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
-      dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
-
-      oldPlaneX = planeX;
-      planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
-      planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
-    }
-
-    if (key == KEY_ROTR) {
-      oldDirX = dirX;
-      dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
-      dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
-  
-      oldPlaneX = planeX;
-      planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
-      planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
-    }
-
-    if (key == KEY_MOVF) {
-      posX = posX + dirX * moveSpeed
-      posY = posY + dirY * moveSpeed
-    }
-
-    if (key == KEY_MOVB) {
-      posX = posX - dirX * moveSpeed
-      posY = posY - dirY * moveSpeed
-    }
 
     #clear(scr)
     fill(scr, "0;0;0")
@@ -185,6 +165,7 @@ BEGIN {
       # Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
       if (side == 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX
       else           perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY
+      perpWallDist = perpWallDist ? perpWallDist : 1
 
 #printf("perpWallDist: %.2f\n", perpWallDist)
       # Calculate height of line to draw on screen
@@ -219,7 +200,63 @@ BEGIN {
       vline(scr, x, drawStart, (drawEnd-drawStart), color)
     }
 
+    miniMap(scr, posX, posY)
+
+    # draw screenbuffer to terminal
     draw(scr, 1,1)
     system("sleep 0.1")
+
+    ## handle user input
+    key = input()
+
+    if (key == KEY_QUIT) {
+      exit 0
+    }
+
+    # rotate left
+    if (key == KEY_ROTL) {
+      oldDirX = dirX;
+      dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
+      dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
+
+      oldPlaneX = planeX;
+      planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
+      planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
+    }
+
+    # rotate right
+    if (key == KEY_ROTR) {
+      oldDirX = dirX;
+      dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
+      dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
+  
+      oldPlaneX = planeX;
+      planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
+      planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
+    }
+
+    # move forward
+    if (key == KEY_MOVF) {
+      posX = posX + dirX * moveSpeed
+      posY = posY + dirY * moveSpeed
+    }
+
+    # move back
+    if (key == KEY_MOVB) {
+      posX = posX - dirX * moveSpeed
+      posY = posY - dirY * moveSpeed
+    }
+
+    # move left (strafe)
+    if (key == KEY_MOVL) {
+      posX = posX + dirY * moveSpeed
+      posY = posY + dirX * moveSpeed
+    }
+
+    # move right (strafe)
+    if (key == KEY_MOVR) {
+      posX = posX - dirY * moveSpeed
+      posY = posY - dirX * moveSpeed
+    }
   }
 }
