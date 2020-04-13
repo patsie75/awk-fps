@@ -134,3 +134,14 @@ function box(scr, x1,y1,x2,y2, col,   i, tmp) {
   }
 }
 
+function fillBox(scr, x1,y1,x2,y2, col,    i, tmp) {
+  if (x1 > x2) {
+    tmp=x1; x1=x2; x2=tmp
+  }
+  if (y1 > y2) {
+    tmp=y1; y1=y2; y2=tmp
+  }
+
+  for (i=y1; i<=y2; i++)
+    hline(scr, x1,i, (x2-x1)+1, col)
+}

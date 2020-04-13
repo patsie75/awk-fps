@@ -2,15 +2,16 @@
 
 @include "lib/2d.gawk"
 
-function miniMap(scr, posX, posY,    x,y) {
+function miniMap(scr, map, posX,posY,    x,y) {
+  offsetX = offsetY = 7
+
   for (y=-5; y<5; y++) {
     for (x=-5; x<5; x++) {
-      c = worldMap[int(posY+y)*mapWidth+int(posX+x)]
-      pixel(scr, x+5,y+5, wall[c])
-#printf("[%3d,%3d] = %s / [%3d,%3d] (%s)\n", x, y, c, (posX+x), (posY+y), wall[c])
+      c = map[int(posY+y)*mapWidth+int(posX+x)]
+      pixel(scr, offsetX+x, offsetY+y, wall[c])
     }
-#printf("\n")
   }
+  pixel(scr, offsetX,offsetY, COL_LMAGENTA)
 }
 
 function input() {
@@ -29,6 +30,7 @@ function loadMap(map, fname,     line, x, y) {
 
   while ((getline line < fname) > 0) {
     linenr++
+#printf("loadMap(): linenr: %d, line: \"%s\" (len: %d)\n", linenr, line, length(line))
 
     # skip empty lines
     if (length(line) == 0) continue
@@ -43,28 +45,36 @@ function loadMap(map, fname,     line, x, y) {
     y = linenr - 1
     for (x=0; x<map["width"]; x++)
       map[y*map["width"]+x] = substr(line, x+1, 1)
+
   }
   map["height"] = linenr
-
   close(fname)
 }
 
 BEGIN {
   COL_BLACK    = "0;0;0"
+  COL_LRED     = "255;64;64"
   COL_RED      = "255;0;0"
   COL_DRED     = "128;0;0"
+  COL_LGREEN   = "64;255;64"
   COL_GREEN    = "0;255;0"
   COL_DGREEN   = "0;128;0"
+  COL_FLOOR    = "16;64;16"
+  COL_LYELLOW  = "255;255;128"
   COL_YELLOW   = "255;255;0"
   COL_DYELLOW  = "128;128;0"
+  COL_LBLUE    = "64;64;255"
   COL_BLUE     = "0;0;255"
   COL_DBLUE    = "0;0;128"
+  COL_LCYAN    = "255;128;255"
   COL_CYAN     = "255;0;255"
   COL_DCYAN    = "128;0;128"
+  COL_LMAGENTA = "128;255;255"
   COL_MAGENTA  = "0;255;255"
   COL_DMAGENTA = "0;128;128"
   COL_WHITE    = "255;255;255"
   COL_GRAY     = "128;128;128"
+  COL_DGRAY    = "64;64;64"
 
   wall[" "] = COL_BLACK
   wall["1"] = COL_RED
@@ -85,7 +95,9 @@ BEGIN {
 
   init(scr)
 
-  loadMap(worldMap, "maps/level1.map")
+  #loadMap(worldMap, "maps/level1.map")
+  loadMap(worldMap, "maps/level2.map")
+
   mapWidth = worldMap["width"]
   mapHeight = worldMap["height"]
 
@@ -109,7 +121,8 @@ BEGIN {
 #  while (frameNr++ < 100) {
 
     #clear(scr)
-    fill(scr, "0;0;0")
+    fill(scr, COL_DGRAY)
+    fillBox(scr, 0,scr["height"] / 2, scr["width"]-1, scr["height"]-1, COL_FLOOR)
 
     for (x=0; x<scr["width"]; x++) {
       cameraX = 2 * x / scr["width"] - 1
@@ -185,8 +198,9 @@ BEGIN {
       drawEnd = lineHeight / 2 + scr["height"] / 2
       if (drawEnd >= scr["height"]) drawEnd = scr["height"] - 1
 
+#printf("map: {%d,%d}, worldMap[%d]: %s\n", mapX, mapY, mapY*mapWidth+mapX, worldMap[mapY*mapWidth+mapX])
       # color to draw
-      switch(worldMap[mapY*mapHeight+mapX]) {
+      switch(worldMap[mapY*mapWidth+mapX]) {
         case "1": color = side ? COL_RED : COL_DRED; break
         case "2": color = side ? COL_GREEN : COL_DGREEN; break
         case "3": color = side ? COL_YELLOW : COL_DYELLOW; break
@@ -195,13 +209,13 @@ BEGIN {
         case "6": color = side ? COL_CYAN : COL_DCYAN; break
 
         default: color = side ? COL_WHITE : COL_GRAY
- }
+      }
 
-#printf("vline(scr, %d, %d, \"%s\")\n", drawStart, (drawEnd-drawStart), color)
-      vline(scr, x, drawStart, (drawEnd-drawStart), color)
+#printf("vline(scr, %d,%d, %d, \"%s\")\n", x,drawStart, (drawEnd-drawStart)+1, color)
+      vline(scr, x, drawStart, (drawEnd-drawStart)+1, color)
     }
 
-    miniMap(scr, posX, posY)
+    miniMap(scr, worldMap, posX, posY)
 
     # draw screenbuffer to terminal
     draw(scr, 1,1)
