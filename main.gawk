@@ -5,8 +5,8 @@
 function miniMap(scr, map, posX,posY,    x,y) {
   offsetX = offsetY = 7
 
-  for (y=-5; y<5; y++) {
-    for (x=-5; x<5; x++) {
+  for (y=-5; y<=5; y++) {
+    for (x=-5; x<=5; x++) {
       c = map[int(posY+y)*mapWidth+int(posX+x)]
       pixel(scr, offsetX+x, offsetY+y, wall[c])
     }
