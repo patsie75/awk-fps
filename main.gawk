@@ -1,13 +1,22 @@
 #!/usr/bin/gawk -f
 
 @include "lib/2d.gawk"
+@include "lib/xpm2.gawk"
+
+function darken(col,    arr) {
+  if (split(col, arr, ";") == 3)
+    return sprintf("%d;%d;%d", arr[1]/2, arr[2]/2, arr[3]/2)
+  else return col
+}
+
+function floor(n,    x) { x=int(n); return(x==n || n>0) ? x : x-1 }
 
 function miniMap(scr, map, posX,posY,    x,y) {
   offsetX = offsetY = 7
 
   for (y=-5; y<=5; y++) {
     for (x=-5; x<=5; x++) {
-      c = map[int(posY+y)*mapWidth+int(posX+x)]
+      c = map[int(posY+y)*map["width"]+int(posX+x)]
       pixel(scr, offsetX+x, offsetY+y, wall[c])
     }
   }
@@ -27,6 +36,7 @@ function input() {
 function loadMap(map, fname,     line, x, y) {
   map["width"] = 0
   map["height"] = 0
+  y = 0
 
   while ((getline line < fname) > 0) {
     linenr++
@@ -42,14 +52,21 @@ function loadMap(map, fname,     line, x, y) {
       exit 1
     }
 
-    y = linenr - 1
-    for (x=0; x<map["width"]; x++)
-      map[y*map["width"]+x] = substr(line, x+1, 1)
+    for (x=0; x<map["width"]; x++) {
+      c = substr(line, x+1, 1)
+      switch(c) {
+        case "s": c = " "; posX = x; posY = y; break
+        case "S": c = " "; posX = x; posY = y; break
+      }
+      map[y*map["width"]+x] = c
+    }
+    y++
 
   }
-  map["height"] = linenr
+  map["height"] = y
   close(fname)
 }
+
 
 BEGIN {
   COL_BLACK    = "0;0;0"
@@ -95,11 +112,8 @@ BEGIN {
 
   init(scr)
 
-  #loadMap(worldMap, "maps/level1.map")
-  loadMap(worldMap, "maps/level2.map")
-
-  mapWidth = worldMap["width"]
-  mapHeight = worldMap["height"]
+  texWidth = 64
+  texHeight = 64
 
   # player position
   posX = 22
@@ -116,9 +130,20 @@ BEGIN {
   rotSpeed = 0.1
   moveSpeed = 0.5
 
+  #loadMap(worldMap, "maps/level1.map")
+  #loadMap(worldMap, "maps/level2.map")
+  loadMap(worldMap, "maps/wolf.map")
+
+  loadxpm2(tex, "gfx/wolftextures.xpm2")
+  for (i=0; i<8; i++) {
+    wallTex[i][0] = 0
+    init(wallTex[i], 64,64)
+    copy(wallTex[i], tex, 0,0, i*64,0)
+  }
+
   frameNr = 0
   while ("awk" != "difficult") {
-#  while (frameNr++ < 100) {
+#  while (frameNr++ < 1) {
 
     #clear(scr)
     fill(scr, COL_DGRAY)
@@ -160,8 +185,8 @@ BEGIN {
       }
 
       # perform DDA
-#printf("hit0: %d, map: {%.2f,%.2f}, mapWidth: %d, mapHeight: %d\n", hit, mapX,mapY, mapWidth, mapHeight)
-      while (!hit && (mapX>=0 && mapX<mapWidth) && (mapY>=0 && mapY<mapHeight)) {
+#printf("hit0: %d, map: {%.2f,%.2f}, worldMap["width"]: %d, mapHeight: %d\n", hit, mapX,mapY, worldMap["width"], worldMap["height"])
+      while (!hit && (mapX>=0 && mapX<worldMap["width"]) && (mapY>=0 && mapY<worldMap["height"])) {
 #printf("hit-loop() map {%d, %d}, sideDist {%.2f, %.2f}, deltaDist {%.2f, %.2f}, step: {%.2f, %.2f}\n", mapX,mapY, sideDistX,sideDistY, deltaDistX,deltaDistY, stepX,stepY)
         # jump to next map square, OR in x-direction, OR in y-direction
         if (sideDistX < sideDistY) {
@@ -175,9 +200,9 @@ BEGIN {
         }
 
         # Check if ray has hit a wall
-        if (worldMap[mapY*mapWidth+mapX] != " ") {
+        if (worldMap[mapY*worldMap["width"]+mapX] != " ") {
           hit = 1
-#printf("worldMap[%d*%d+%d] == \"%s\"\n", mapY, mapWidth, mapX, worldMap[mapY*mapWidth+mapX])
+#printf("worldMap[%d*%d+%d] == \"%s\"\n", mapY, mapWidth, mapX, worldMap[mapY*worldMap["width"]+mapX])
         }
       } 
 
@@ -198,21 +223,35 @@ BEGIN {
       drawEnd = lineHeight / 2 + scr["height"] / 2
       if (drawEnd >= scr["height"]) drawEnd = scr["height"] - 1
 
-#printf("map: {%d,%d}, worldMap[%d]: %s\n", mapX, mapY, mapY*mapWidth+mapX, worldMap[mapY*mapWidth+mapX])
-      # color to draw
-      switch(worldMap[mapY*mapWidth+mapX]) {
-        case "1": color = side ? COL_RED : COL_DRED; break
-        case "2": color = side ? COL_GREEN : COL_DGREEN; break
-        case "3": color = side ? COL_YELLOW : COL_DYELLOW; break
-        case "4": color = side ? COL_BLUE : COL_DBLUE; break
-        case "5": color = side ? COL_MAGENTA : COL_DMAGENTA; break
-        case "6": color = side ? COL_CYAN : COL_DCYAN; break
 
-        default: color = side ? COL_WHITE : COL_GRAY
+      # texture to draw
+      texNum = worldMap[mapY*worldMap["width"]+mapX] - 1
+
+      # calculate value of wallX
+      if (side == 0) wallX = posY + perpWallDist * rayDirY
+      else           wallX = posX + perpWallDist * rayDirX
+      wallX -= floor(wallX)
+
+      # x coordinate on the texture
+      texX = int(wallX * texWidth)
+      if (side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
+      if (side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
+
+      # How much to increase the texture coordinate per screen pixel
+      step = 1.0 * texHeight / lineHeight
+      # Starting texture coordinate
+      texPos = (drawStart - scr["height"] / 2 + lineHeight / 2) * step
+
+      for (y=drawStart; y<drawEnd; y++) {
+        # Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+        texY = int(and(texPos, texHeight - 1))
+        texPos += step
+        color = wallTex[texNum][texHeight * texY + texX]
+        # make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
+        if (side == 1) color = darken(color)
+
+        pixel(scr, x,y, color)
       }
-
-#printf("vline(scr, %d,%d, %d, \"%s\")\n", x,drawStart, (drawEnd-drawStart)+1, color)
-      vline(scr, x, drawStart, (drawEnd-drawStart)+1, color)
     }
 
     miniMap(scr, worldMap, posX, posY)

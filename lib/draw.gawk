@@ -17,16 +17,16 @@ function init(scr, width, height) {
   }
 
   if (!height) {
-    if (ENVIRON["LINES"]) height = ENVIRON["LINES"]
-    else { "tput lines" | getline height; close("tput lines") }
+    if (ENVIRON["LINES"]) height = (ENVIRON["LINES"] - 1) * 2
+    else { "tput lines" | getline height; height = (height-1) * 2; close("tput lines") }
   }
 
   # fallback width/height if autodetect fails
   if (!width) width = 80
-  if (!height) height = 24
+  if (!height) height = 48
 
   # two pixels per lines
-  height = (height-1) * 2
+#  height = (height-1) * 2
 
   scr["width"] = width
   scr["height"] = height
@@ -123,5 +123,56 @@ function fps(f) {
   }
 
   return( f["fps"] )
+}
+
+
+# copy graphic buffer to another graphic buffer (with transparency, and edge clipping)
+# usage: dst, src, [dstx, dsty, [srcx, srcy, [srcw, srch, [transparent] ] ] ]
+function copy(dst, src, dstx, dsty, srcx, srcy, srcw, srch, transp,   dx,dy, dw,dh, sx,sy, sw,sh, x,y, w,h, t, pix, sw_mul_y, ydy_mul_dw, xdx) {
+  dw = dst["width"]
+  dh = dst["height"]
+  sw = src["width"]
+  sh = src["height"]
+
+  dx = int(src["x"])
+  dy = int(src["y"])
+  sx = 0
+  sy = 0
+  w = src["width"]
+  h = src["height"]
+
+  if (length(dstx)) dx = dstx
+  if (length(dsty)) dy = dsty
+  if (length(srcx)) sx = srcx
+  if (length(srcy)) sy = srcy
+  if (length(srcw)) w = ((srcw > 0) && (srcw < src["width"])) ? srcw : w
+  if (length(srch)) h = ((srch > 0) && (srch < src["height"])) ? srch : h
+
+  if (sprintf("%s", transp)) t = transp
+  else if ("transparent" in src) t = src["transparent"]
+  else if ("transparent" in glib) t = glib["transparent"]
+
+  for (y=sy; y<(sy+h); y++) {
+    # clip image off top/bottom
+    if ((dy + y) >= dh) break
+    if ((dy + y) < 0) continue
+    sw_mul_y = sw * y
+    ydy_mul_dw = (y - sy + dy) * dw
+    for (x=sx; x<(sx+w); x++) {
+      xdx = x - sx + dx
+
+      # clip image on left/right
+      if (xdx >= dw) break
+      if (xdx < 0) continue
+
+      # draw non-transparent pixel or else background
+      pix = src[sw_mul_y + x]
+      dst[ydy_mul_dw + xdx] = ((pix == t) || (pix == "None")) ? dst[ydy_mul_dw + xdx] : pix
+      #if ((pix == t) || (pix == "None"))
+      #  dst[ydy_mul_dw + xdx] = dst[ydy_mul_dw + xdx]
+      #else
+      #  dst[ydy_mul_dw + xdx] = pix
+    }
+  }
 }
 
