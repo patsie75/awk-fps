@@ -16,8 +16,12 @@ function miniMap(scr, map, posX,posY,    x,y) {
 
   for (y=-5; y<=5; y++) {
     for (x=-5; x<=5; x++) {
-      c = map[int(posY+y)*map["width"]+int(posX+x)]
-      pixel(scr, offsetX+x, offsetY+y, wall[c])
+      if ( (int(posX+x) > map["width"]) || (int(posX+x) < 0) || (int(posY+y) > map["height"]) || (int(posY+y) < 0) )
+        pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
+      else {
+        c = map[int(posY+y)*map["width"]+int(posX+x)]
+        pixel(scr, offsetX+x, offsetY+y, wall[c])
+      }
     }
   }
   pixel(scr, offsetX,offsetY, COL_LMAGENTA)
