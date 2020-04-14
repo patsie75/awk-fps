@@ -27,6 +27,7 @@ function input() {
 function loadMap(map, fname,     line, x, y) {
   map["width"] = 0
   map["height"] = 0
+  y = 0
 
   while ((getline line < fname) > 0) {
     linenr++
@@ -42,12 +43,12 @@ function loadMap(map, fname,     line, x, y) {
       exit 1
     }
 
-    y = linenr - 1
     for (x=0; x<map["width"]; x++)
       map[y*map["width"]+x] = substr(line, x+1, 1)
+    y++
 
   }
-  map["height"] = linenr
+  map["height"] = y
   close(fname)
 }
 
