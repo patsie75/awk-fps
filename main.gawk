@@ -295,26 +295,32 @@ BEGIN {
 
     # move forward
     if (key == KEY_MOVF) {
-      posX = posX + dirX * moveSpeed
-      posY = posY + dirY * moveSpeed
+      newPosX = posX + dirX * moveSpeed
+      newPosY = posY + dirY * moveSpeed
     }
 
     # move back
     if (key == KEY_MOVB) {
-      posX = posX - dirX * moveSpeed
-      posY = posY - dirY * moveSpeed
+      newPosX = posX - dirX * moveSpeed
+      newPosY = posY - dirY * moveSpeed
     }
 
     # move left (strafe)
     if (key == KEY_MOVL) {
-      posX = posX + dirY * moveSpeed
-      posY = posY + dirX * moveSpeed
+      newPosX = posX - dirY * moveSpeed
+      newPosY = posY + dirX * moveSpeed
     }
 
     # move right (strafe)
     if (key == KEY_MOVR) {
-      posX = posX - dirY * moveSpeed
-      posY = posY - dirX * moveSpeed
+      newPosX = posX + dirY * moveSpeed
+      newPosY = posY - dirX * moveSpeed
     }
+
+    # TODO colision detection
+    #if (worldMap[int(posY * worldMap["width"] + newPosX)] == " ") posX = newPosX
+    #if (worldMap[int(newPosY * worldMap["width"] + PosX)] == " ") posY = newPosY
+    posX = newPosX
+    posY = newPosY
   }
 }
