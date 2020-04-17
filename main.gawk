@@ -20,7 +20,8 @@ function miniMap(scr, map, posX,posY,    x,y) {
         pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
       else {
         c = map[int(posY+y)*map["width"]+int(posX+x)]
-        pixel(scr, offsetX+x, offsetY+y, wall[c])
+        #pixel(scr, offsetX+x, offsetY+y, wall[c])
+        pixel(scr, offsetX+x, offsetY+y, (c == " ") ? COL_BLACK : COL_GRAY)
       }
     }
   }
@@ -106,13 +107,15 @@ BEGIN {
   wall["6"] = COL_MAGENTA
   wall["7"] = COL_WHITE
 
-  KEY_QUIT = "Q"
-  KEY_MOVF = "w"
-  KEY_MOVB = "s"
-  KEY_MOVL = "a"
-  KEY_MOVR = "d"
-  KEY_ROTL = "j"
-  KEY_ROTR = "l"
+  KEY_QUIT  = "Q"
+  KEY_MOVF  = "w"
+  KEY_MOVB  = "s"
+  KEY_MOVL  = "a"
+  KEY_MOVR  = "d"
+  KEY_ROTL  = "j"
+  KEY_ROTLF = "J"
+  KEY_ROTR  = "l"
+  KEY_ROTRF = "L"
 
   init(scr)
 
@@ -131,28 +134,39 @@ BEGIN {
   planeX = 0
   planeY = 0.66
 
-  rotSpeed = 0.1
+  rotSpeed = 0.2
   moveSpeed = 0.5
 
-  #loadMap(worldMap, "maps/level1.map")
-  #loadMap(worldMap, "maps/level2.map")
-  loadMap(worldMap, "maps/wolf.map")
 
+  nTextures = split("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mTextures, "")
+
+  ## load texture map
   loadxpm2(tex, "gfx/wolftextures.xpm2")
-  for (i=0; i<8; i++) {
-    wallTex[i][0] = 0
-    init(wallTex[i], 64,64)
-    copy(wallTex[i], tex, 0,0, i*64,0)
+
+  ## split up texture map into single textures
+  for (i=0; i<114; i+=2) {
+    c = mTextures[int(i/2)+1]
+    wallTex[c][0] = 0
+    init(wallTex[c], 64,64)
+    copy(wallTex[c], tex, 0,0, (i%6)*64,int(i/6)*64)
   }
+
+  ## load a map
+  loadMap(worldMap, "maps/wolf.w3d")
+
+  ##
+  ## main loop
+  ##
 
   frameNr = 0
   while ("awk" != "difficult") {
 #  while (frameNr++ < 1) {
 
-    #clear(scr)
+    # ceiling and floor
     fill(scr, COL_DGRAY)
     fillBox(scr, 0,scr["height"] / 2, scr["width"]-1, scr["height"]-1, COL_FLOOR)
 
+    # start raycast
     for (x=0; x<scr["width"]; x++) {
       cameraX = 2 * x / scr["width"] - 1
 
@@ -228,8 +242,12 @@ BEGIN {
       if (drawEnd >= scr["height"]) drawEnd = scr["height"] - 1
 
 
+      ##
+      ## start texture mapping
+      ##
+
       # texture to draw
-      texNum = worldMap[mapY*worldMap["width"]+mapX] - 1
+      texNum = worldMap[mapY*worldMap["width"]+mapX]
 
       # calculate value of wallX
       if (side == 0) wallX = posY + perpWallDist * rayDirY
@@ -254,10 +272,12 @@ BEGIN {
         # make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
         if (side == 1) color = darken(color)
 
+        ## draw final pixel to buffer
         pixel(scr, x,y, color)
       }
     }
 
+    # layer minimap on top of screenbuffer
     miniMap(scr, worldMap, posX, posY)
 
     # draw screenbuffer to terminal
@@ -267,6 +287,7 @@ BEGIN {
     ## handle user input
     key = input()
 
+    # quit key exits game
     if (key == KEY_QUIT) {
       exit 0
     }
@@ -282,15 +303,37 @@ BEGIN {
       planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
     }
 
+    # rotate left fast
+    if (key == KEY_ROTLF) {
+      oldDirX = dirX
+      dirX = dirX * cos(rotSpeed*3) - dirY * sin(rotSpeed*3)
+      dirY = oldDirX * sin(rotSpeed*3) + dirY * cos(rotSpeed*3)
+
+      oldPlaneX = planeX
+      planeX = planeX * cos(rotSpeed*3) - planeY * sin(rotSpeed*3)
+      planeY = oldPlaneX * sin(rotSpeed*3) + planeY * cos(rotSpeed*3)
+    }
+
     # rotate right
     if (key == KEY_ROTR) {
-      oldDirX = dirX;
-      dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
-      dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
+      oldDirX = dirX
+      dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed)
+      dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed)
   
-      oldPlaneX = planeX;
-      planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
-      planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
+      oldPlaneX = planeX
+      planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed)
+      planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed)
+    }
+
+    # rotate right fast
+    if (key == KEY_ROTRF) {
+      oldDirX = dirX
+      dirX = dirX * cos(-rotSpeed*3) - dirY * sin(-rotSpeed*3)
+      dirY = oldDirX * sin(-rotSpeed*3) + dirY * cos(-rotSpeed*3)
+  
+      oldPlaneX = planeX
+      planeX = planeX * cos(-rotSpeed*3) - planeY * sin(-rotSpeed*3)
+      planeY = oldPlaneX * sin(-rotSpeed*3) + planeY * cos(-rotSpeed*3)
     }
 
     # move forward
