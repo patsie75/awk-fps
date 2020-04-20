@@ -3,9 +3,10 @@
 @include "lib/2d.gawk"
 @include "lib/xpm2.gawk"
 
-function darken(col,    arr) {
+function darken(col, val,    arr) {
+  val = (val > 1) ? val : 1
   if (split(col, arr, ";") == 3)
-    return sprintf("%d;%d;%d", arr[1]/2, arr[2]/2, arr[3]/2)
+    return sprintf("%d;%d;%d", arr[1]/val, arr[2]/val, arr[3]/val)
   else return col
 }
 
@@ -118,6 +119,7 @@ BEGIN {
   KEY_ROTRF = "L"
 
   init(scr)
+  #init(scr, 120,60)
 
   texWidth = 64
   texHeight = 64
@@ -132,7 +134,7 @@ BEGIN {
 
   # camera plane
   planeX = 0
-  planeY = 0.66
+  planeY = 0.75
 
   rotSpeed = 0.2
   moveSpeed = 0.5
@@ -147,8 +149,8 @@ BEGIN {
   for (i=0; i<114; i+=2) {
     c = mTextures[int(i/2)+1]
     wallTex[c][0] = 0
-    init(wallTex[c], 64,64)
-    copy(wallTex[c], tex, 0,0, (i%6)*64,int(i/6)*64)
+    init(wallTex[c], texWidth,texHeight)
+    copy(wallTex[c], tex, 0,0, (i%6)*texWidth,int(i/6)*texHeight)
   }
 
   ## load a map
@@ -159,12 +161,18 @@ BEGIN {
   ##
 
   frameNr = 0
-  while ("awk" != "difficult") {
 #  while (frameNr++ < 1) {
+  while ("awk" != "difficult") {
 
     # ceiling and floor
-    fill(scr, COL_DGRAY)
-    fillBox(scr, 0,scr["height"] / 2, scr["width"]-1, scr["height"]-1, COL_FLOOR)
+    for (y=0; y<scr["height"]/2; y++) {
+      c = darken(COL_DGRAY, y/15+1)
+      hline(scr, 0,y, scr["width"], c)
+    }
+    for (y=scr["height"]/2; y<scr["height"]; y++) {
+      c = darken(COL_FLOOR, (scr["height"]-y)/15+1)
+      hline(scr, 0,y, scr["width"], c)
+    }
 
     # start raycast
     for (x=0; x<scr["width"]; x++) {
@@ -264,13 +272,18 @@ BEGIN {
       # Starting texture coordinate
       texPos = (drawStart - scr["height"] / 2 + lineHeight / 2) * step
 
-      for (y=drawStart; y<drawEnd; y++) {
+      for (y=drawStart; y<=drawEnd; y++) {
         # Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
         texY = int(and(texPos, texHeight - 1))
         texPos += step
         color = wallTex[texNum][texHeight * texY + texX]
+
+
         # make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-        if (side == 1) color = darken(color)
+        tmp = (perpWallDist > 1) ? perpWallDist : 1
+
+        if (side == 1) color = darken(color, 2 + tmp)
+        else color = darken(color, tmp)
 
         ## draw final pixel to buffer
         pixel(scr, x,y, color)
@@ -281,7 +294,7 @@ BEGIN {
     miniMap(scr, worldMap, posX, posY)
 
     # draw screenbuffer to terminal
-    draw(scr, 1,1)
+    draw(scr, -1,1)
     system("sleep 0.1")
 
     ## handle user input
