@@ -12,8 +12,9 @@ function darken(col, val,    arr) {
 
 function floor(n,    x) { x=int(n); return(x==n || n>0) ? x : x-1 }
 
-function miniMap(scr, map, posX,posY,    x,y) {
-  offsetX = offsetY = 7
+function miniMap(scr, map, posX,posY, offsetX, offsetY,    x,y) {
+  if (offsetX < 0) offsetX = scr["width"] + offsetX
+  if (offsetY < 0) offsetY = scr["height"] + offsetY
 
   for (y=-5; y<=5; y++) {
     for (x=-5; x<=5; x++) {
@@ -21,7 +22,6 @@ function miniMap(scr, map, posX,posY,    x,y) {
         pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
       else {
         c = map[int(posY+y)*map["width"]+int(posX+x)]
-        #pixel(scr, offsetX+x, offsetY+y, wall[c])
         pixel(scr, offsetX+x, offsetY+y, (c == " ") ? COL_BLACK : COL_GRAY)
       }
     }
@@ -61,8 +61,7 @@ function loadMap(map, fname,     line, x, y) {
     for (x=0; x<map["width"]; x++) {
       c = substr(line, x+1, 1)
       switch(c) {
-        case "s": c = " "; posX = x; posY = y; break
-        case "S": c = " "; posX = x; posY = y; break
+        case "s": c = " "; posX = newPosX = x; posY = newPosY = y; break
       }
       map[y*map["width"]+x] = c
     }
@@ -117,6 +116,7 @@ BEGIN {
   KEY_ROTLF = "J"
   KEY_ROTR  = "l"
   KEY_ROTRF = "L"
+  KEY_MMAP  = "m"
 
   init(scr)
   #init(scr, 120,60)
@@ -124,20 +124,23 @@ BEGIN {
   texWidth = 64
   texHeight = 64
 
+  ## minimap position
+  mmPosX = mmPosY = 7
+
   # player position
-  posX = 22
-  posY = 12
+  posX = newPosX = 22
+  posY = newPosX = 12
 
   # player direction
-  dirX = -1
+  dirX = 1
   dirY = 0
 
   # camera plane
   planeX = 0
-  planeY = 0.75
+  planeY = -0.75
 
-  rotSpeed = 0.2
-  moveSpeed = 0.5
+  rotSpeed = 3.14159265 / 8
+  moveSpeed = 0.4
 
 
   nTextures = split("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mTextures, "")
@@ -291,7 +294,7 @@ BEGIN {
     }
 
     # layer minimap on top of screenbuffer
-    miniMap(scr, worldMap, posX, posY)
+    miniMap(scr, worldMap, posX, posY, mmPosX, mmPosY)
 
     # draw screenbuffer to terminal
     draw(scr, -1,1)
@@ -319,12 +322,12 @@ BEGIN {
     # rotate left fast
     if (key == KEY_ROTLF) {
       oldDirX = dirX
-      dirX = dirX * cos(rotSpeed*3) - dirY * sin(rotSpeed*3)
-      dirY = oldDirX * sin(rotSpeed*3) + dirY * cos(rotSpeed*3)
+      dirX = dirX * cos(rotSpeed*2) - dirY * sin(rotSpeed*2)
+      dirY = oldDirX * sin(rotSpeed*2) + dirY * cos(rotSpeed*2)
 
       oldPlaneX = planeX
-      planeX = planeX * cos(rotSpeed*3) - planeY * sin(rotSpeed*3)
-      planeY = oldPlaneX * sin(rotSpeed*3) + planeY * cos(rotSpeed*3)
+      planeX = planeX * cos(rotSpeed*2) - planeY * sin(rotSpeed*2)
+      planeY = oldPlaneX * sin(rotSpeed*2) + planeY * cos(rotSpeed*2)
     }
 
     # rotate right
@@ -341,12 +344,12 @@ BEGIN {
     # rotate right fast
     if (key == KEY_ROTRF) {
       oldDirX = dirX
-      dirX = dirX * cos(-rotSpeed*3) - dirY * sin(-rotSpeed*3)
-      dirY = oldDirX * sin(-rotSpeed*3) + dirY * cos(-rotSpeed*3)
+      dirX = dirX * cos(-rotSpeed*2) - dirY * sin(-rotSpeed*2)
+      dirY = oldDirX * sin(-rotSpeed*2) + dirY * cos(-rotSpeed*2)
   
       oldPlaneX = planeX
-      planeX = planeX * cos(-rotSpeed*3) - planeY * sin(-rotSpeed*3)
-      planeY = oldPlaneX * sin(-rotSpeed*3) + planeY * cos(-rotSpeed*3)
+      planeX = planeX * cos(-rotSpeed*2) - planeY * sin(-rotSpeed*2)
+      planeY = oldPlaneX * sin(-rotSpeed*2) + planeY * cos(-rotSpeed*2)
     }
 
     # move forward
@@ -371,6 +374,16 @@ BEGIN {
     if (key == KEY_MOVR) {
       newPosX = posX + dirY * moveSpeed
       newPosY = posY - dirX * moveSpeed
+    }
+
+    # minimap location
+    if (key == KEY_MMAP) {
+      switch (mmPosX "," mmPosY) {
+        case   "7,7": mmPosX = -7; mmPosY =  7; break
+        case  "-7,7": mmPosX = -7; mmPosY = -7; break
+        case "-7,-7": mmPosX =  7; mmPosY = -7; break
+        default:      mmPosX =  7; mmPosY =  7
+      }
     }
 
     # TODO colision detection
