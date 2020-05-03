@@ -17,13 +17,13 @@ function darken(col, val,    arr) {
 function floor(n,    x) { x=int(n); return(x==n || n>0) ? x : x-1 }
 
 function miniMap(scr, map, posX,posY, offsetX, offsetY,    x,y) {
-  if (offsetX < 0) offsetX = scr["width"] + offsetX
-  if (offsetY < 0) offsetY = scr["height"] + offsetY
+  if (offsetX < 0) offsetX = scr["width"] + offsetX - 1
+  if (offsetY < 0) offsetY = scr["height"] + offsetY - 1
 
   for (y=-5; y<=5; y++) {
     for (x=-5; x<=5; x++) {
       if ( (int(posX+x) > map["width"]) || (int(posX+x) < 0) || (int(posY+y) > map["height"]) || (int(posY+y) < 0) )
-        pixel(scr, offsetX+x, offsetY+y, COL_CYAN)
+        pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
       else {
         c = map[int(posY+y)*map["width"]+int(posX+x)]
         pixel(scr, offsetX+x, offsetY+y, (c == " ") ? COL_BLACK : COL_GRAY)
@@ -43,37 +43,58 @@ function input() {
   return(key)
 }
 
-function loadMap(map, fname,     line, x, y) {
+function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
   map["width"] = 0
   map["height"] = 0
   y = 0
+  obj = 0
 
-  while ((getline line < fname) > 0) {
+  while ((getline < fname) > 0) {
     linenr++
-#printf("loadMap(): linenr: %d, line: \"%s\" (len: %d)\n", linenr, line, length(line))
+#printf("loadMap(): linenr: %d, line: \"%s\" (len: %d) NR == %d\n", linenr, $0, length($0), NF)
 
-    # skip empty lines
-    if (length(line) == 0) continue
+    # skip empty and comment lines
+    if ((NF == 0) || ($1 ~ /^#/)) continue
 
-    # check line length (map width)
-    if (!map["width"]) map["width"] = length(line)
-    else if (map["width"] != length(line)) {
-      printf("Error: line %d, file \"%s\", invalid line length (%d != %d)\n", linenr, fname, length(line), map["width"])
-      exit 1
+    switch ($1) {
+      case "map":
+        match($0, /^ *map \"([^\"]+)\" *$/, str)
+
+        # check line length (map width)
+        if (!map["width"]) map["width"] = length(str[1])
+        else if (map["width"] != length(str[1])) {
+          printf("loadMap(): Error on line #%d, file \"%s\": invalid line length (%d != %d)\n", linenr, fname, length(str[1]), map["width"])
+          exit 1
+        }
+
+        for (x=0; x<map["width"]; x++) {
+          c = substr(str[1], x+1, 1)
+          switch(c) {
+            case "s": c = " "; posX = newPosX = x; posY = newPosY = y; break
+          }
+          map[y*map["width"]+x] = c
+        }
+        y++
+        break
+
+      case "obj":
+        object[obj]["x"] = $2 + 0.5
+        object[obj]["y"] = $3 + 0.5
+        object[obj]["sprite"] = $4
+        obj++
+        break
+
+      default:
+        printf("loadMap(): Error on line #%d, file \"%s\": unknown type \"%s\". Only \"map\" and \"obj\" allowed\n", linenr, file, $1)
+        exit 1
     }
-
-    for (x=0; x<map["width"]; x++) {
-      c = substr(line, x+1, 1)
-      switch(c) {
-        case "s": c = " "; posX = newPosX = x; posY = newPosY = y; break
-      }
-      map[y*map["width"]+x] = c
-    }
-    y++
 
   }
+
+  #object["objects"] = obj
   map["height"] = y
   close(fname)
+
 }
 
 
@@ -171,28 +192,7 @@ BEGIN {
   }
 
   ## load map
-  loadMap(worldMap, "maps/wolf.w3d")
-
-  # add some objects
-  object[0]["x"]   = 5.5
-  object[0]["y"]   = 1.5
-  object[0]["sprite"] = 3
-
-  object[1]["x"]   = 8.5
-  object[1]["y"]   = 8.5
-  object[1]["sprite"] = 9
-
-  object[2]["x"]   = 9.5
-  object[2]["y"]   = 8.5
-  object[2]["sprite"] = 10
-
-  object[3]["x"]   = 8.5
-  object[3]["y"]   = 9.5
-  object[3]["sprite"] = 10
-
-  object[4]["x"]   = 9.5
-  object[4]["y"]   = 9.5
-  object[4]["sprite"] = 9
+  loadMap(worldMap, object, "maps/wolf.w3d")
 
   ##
   ## main loop
@@ -377,7 +377,8 @@ BEGIN {
 
       # loop through every vertical stripe of the sprite on screen
       for (stripe = drawStartX; stripe < drawEndX; stripe++) {
-        texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+        #texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+        texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth)
         # the conditions in the if are:
         # 1) it's in front of camera plane so you don't see things behind you
         # 2) it's on the screen (left)
@@ -388,7 +389,7 @@ BEGIN {
           for (y = drawStartY; y < drawEndY; y++) # for every pixel of the current stripe
           {
             d = y * 256 - scr["height"] * 128 + spriteHeight * 128; # 256 and 128 factors to avoid floats
-            texY = ((d * texHeight) / spriteHeight) / 256;
+            texY = ((d * texHeight) / spriteHeight) / 256 + 1;
 
             c = sprite[object[i]["sprite"]][int(texY) * texWidth + int(texX)]; # get current color from the texture
             if (c != sprite[object[i]["sprite"]]["transparent"])

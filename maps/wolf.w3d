@@ -1,18 +1,26 @@
-abababa    hihihih
-b     z    e     g
-a s   zxxiih     h
-b  B          O  i
-a     zx  ih     h
-b     z    g     e
-azz zzz    hih hih
-  x x        i i  
-  x            i  
-  l            q  
-  l l        q q  
-lll lll    qqq qqq
-l     l    q     q
-l     ll  qq     r
-k  j          L  q
-l     lllqqq     r
-l     l    q     q
-lllklll    qqtqtqq
+# test map
+map "abababa    hihihih"
+map "b     z    e     g"
+map "a s   zxxiih     h"
+map "b  B          O  i"
+map "a     zx  ih     h"
+map "b     z    g     e"
+map "azz zzz    hih hih"
+map "  x x        i i  "
+map "  x            i  "
+map "  l            q  "
+map "  l l        q q  "
+map "lll lll    qqq qqq"
+map "l     l    q     q"
+map "l     ll  qq     r"
+map "k  j          L  q"
+map "l     lllqqq     r"
+map "l     l    q     q"
+map "lllklll    qqtqtqq"
+
+# obj <x> <y> <spritenr>
+obj  5  1  3
+obj  8  8  9
+obj  9  8 10
+obj  8  9 10
+obj  9  9  9
