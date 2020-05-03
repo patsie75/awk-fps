@@ -3,8 +3,8 @@
 @include "lib/2d.gawk"
 @include "lib/xpm2.gawk"
 
-function sortz(i1, v1, i2, v2) {
-  return (v2["z"] - v1["z"])
+function sortDist(i1, v1, i2, v2) {
+  return (v2["dist"] - v1["dist"])
 }
 
 function darken(col, val,    arr) {
@@ -339,13 +339,16 @@ BEGIN {
     ## Sprites
     ##
 
-    # calculate z (distance)
+    # calculate distance from player
     for (i in object)
-      object[i]["z"] = ( (posX - object[i]["x"]) * (posX - object[i]["x"]) + (posY - object[i]["y"]) * (posY - object[i]["y"]) )
+      object[i]["dist"] = ( (posX - object[i]["x"]) * (posX - object[i]["x"]) + (posY - object[i]["y"]) * (posY - object[i]["y"]) )
 
-    asort(object, object, "sortz")
+    # sort objects by distance from player (far -> near)
+    asort(object, object, "sortDist")
 
+    # loop through objects (far -> near)
     for (i in object) {
+#printf("object[%s][sprite] = [%s]\n", i, object[i]["sprite"])
       spriteX = object[i]["x"] - posX
       spriteY = object[i]["y"] - posY
 
@@ -366,10 +369,11 @@ BEGIN {
 
       # calculate width of the sprite
       spriteWidth = abs( int(scr["height"] / transformY))
-      drawStartX = (-spriteWidth / 2) + spriteScreenX
+      drawStartX = int( (-spriteWidth / 2) + spriteScreenX)
       if (drawStartX < 0) drawStartX = 0
       drawEndX = (spriteWidth / 2) + spriteScreenX
-      if (drawEndX >= w) drawEndX = scr["width"] - 1
+      if (drawEndX >= scr["width"]) drawEndX = scr["width"] - 1
+
 
       # loop through every vertical stripe of the sprite on screen
       for (stripe = drawStartX; stripe < drawEndX; stripe++) {
@@ -379,6 +383,7 @@ BEGIN {
         # 2) it's on the screen (left)
         # 3) it's on the screen (right)
         # 4) ZBuffer, with perpendicular distance
+#if (object[i]["sprite"] == 3) printf("transformY == %s, stripe == %s, ZBuffer == %s, width == %s\n", transformY, stripe, ZBuffer[stripe], scr["width"])
         if (transformY > 0 && stripe > 0 && stripe < scr["width"] && transformY < ZBuffer[stripe]) {
           for (y = drawStartY; y < drawEndY; y++) # for every pixel of the current stripe
           {
