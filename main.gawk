@@ -3,6 +3,10 @@
 @include "lib/2d.gawk"
 @include "lib/xpm2.gawk"
 
+function sortz(i1, v1, i2, v2) {
+  return (v2["z"] - v1["z"])
+}
+
 function darken(col, val,    arr) {
   val = (val > 1) ? val : 1
   if (split(col, arr, ";") == 3)
@@ -19,7 +23,7 @@ function miniMap(scr, map, posX,posY, offsetX, offsetY,    x,y) {
   for (y=-5; y<=5; y++) {
     for (x=-5; x<=5; x++) {
       if ( (int(posX+x) > map["width"]) || (int(posX+x) < 0) || (int(posY+y) > map["height"]) || (int(posY+y) < 0) )
-        pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
+        pixel(scr, offsetX+x, offsetY+y, COL_CYAN)
       else {
         c = map[int(posY+y)*map["width"]+int(posX+x)]
         pixel(scr, offsetX+x, offsetY+y, (c == " ") ? COL_BLACK : COL_GRAY)
@@ -118,8 +122,8 @@ BEGIN {
   KEY_ROTRF = "L"
   KEY_MMAP  = "m"
 
-  init(scr)
-  #init(scr, 120,60)
+  #init(scr)
+  init(scr, 128,64)
 
   texWidth = 64
   texHeight = 64
@@ -137,7 +141,7 @@ BEGIN {
 
   # camera plane
   planeX = 0
-  planeY = -0.75
+  planeY = (scr["width"] / (scr["height"]*2)) * -1
 
   rotSpeed = 3.14159265 / 8
   moveSpeed = 0.4
@@ -146,7 +150,7 @@ BEGIN {
   nTextures = split("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mTextures, "")
 
   ## load texture map
-  loadxpm2(tex, "gfx/wolftextures.xpm2")
+  loadxpm2(tex, "gfx/textures.xpm2")
 
   ## split up texture map into single textures
   for (i=0; i<114; i+=2) {
@@ -156,12 +160,47 @@ BEGIN {
     copy(wallTex[c], tex, 0,0, (i%6)*texWidth,int(i/6)*texHeight)
   }
 
-  ## load a map
+  ## load spritemap
+  loadxpm2(spr, "gfx/sprites.xpm2")
+
+  for (i=0; i<50; i++) {
+    sprite[i][0] = 0
+    init(sprite[i], texWidth, texHeight)
+    copy(sprite[i], spr, 0,0, (i%5)*(texWidth+1),int(i/5)*(texHeight+1))
+    sprite[i]["transparent"] = "152;0;136"; # #980088 / cyan
+  }
+
+  ## load map
   loadMap(worldMap, "maps/wolf.w3d")
+
+  # add some objects
+  object[0]["x"]   = 5.5
+  object[0]["y"]   = 1.5
+  object[0]["sprite"] = 3
+
+  object[1]["x"]   = 8.5
+  object[1]["y"]   = 8.5
+  object[1]["sprite"] = 9
+
+  object[2]["x"]   = 9.5
+  object[2]["y"]   = 8.5
+  object[2]["sprite"] = 10
+
+  object[3]["x"]   = 8.5
+  object[3]["y"]   = 9.5
+  object[3]["sprite"] = 10
+
+  object[4]["x"]   = 9.5
+  object[4]["y"]   = 9.5
+  object[4]["sprite"] = 9
 
   ##
   ## main loop
   ##
+
+#for (i in sprite[0])
+#  printf("sprite[0][%s] == [%s]\n", i, sprite[0][i])
+#exit 0
 
   frameNr = 0
 #  while (frameNr++ < 1) {
@@ -244,6 +283,7 @@ BEGIN {
 #printf("perpWallDist: %.2f\n", perpWallDist)
       # Calculate height of line to draw on screen
       lineHeight = int(scr["height"] / perpWallDist)
+      lineHeight = lineHeight ? lineHeight : 1
 
       # calculate lowest and highest pixel to fill in current stripe
       drawStart = -lineHeight / 2 + scr["height"] / 2
@@ -291,6 +331,67 @@ BEGIN {
         ## draw final pixel to buffer
         pixel(scr, x,y, color)
       }
+
+      ZBuffer[x] = perpWallDist;
+    }
+
+    ##
+    ## Sprites
+    ##
+
+    # calculate z (distance)
+    for (i in object)
+      object[i]["z"] = ( (posX - object[i]["x"]) * (posX - object[i]["x"]) + (posY - object[i]["y"]) * (posY - object[i]["y"]) )
+
+    asort(object, object, "sortz")
+
+    for (i in object) {
+      spriteX = object[i]["x"] - posX
+      spriteY = object[i]["y"] - posY
+
+      invDet = 1.0 / (planeX * dirY - dirX * planeY); # required for correct matrix multiplication
+
+      transformX = invDet * (dirY * spriteX - dirX * spriteY);
+      transformY = invDet * (-planeY * spriteX + planeX * spriteY); # this is actually the depth inside the screen, that what Z is in 3D
+
+      spriteScreenX = int((scr["width"] / 2) * (1 + transformX / transformY));
+
+      # calculate height of the sprite on screen
+      spriteHeight = abs(int(scr["height"] / transformY)); # using 'transformY' instead of the real distance prevents fisheye
+      # calculate lowest and highest pixel to fill in current stripe
+      drawStartY = (-spriteHeight / 2) + (scr["height"] / 2)
+      if (drawStartY < 0) drawStartY = 0
+      drawEndY = (spriteHeight / 2) + (scr["height"] / 2)
+      if (drawEndY >= scr["height"]) drawEndY = scr["height"] - 1
+
+      # calculate width of the sprite
+      spriteWidth = abs( int(scr["height"] / transformY))
+      drawStartX = (-spriteWidth / 2) + spriteScreenX
+      if (drawStartX < 0) drawStartX = 0
+      drawEndX = (spriteWidth / 2) + spriteScreenX
+      if (drawEndX >= w) drawEndX = scr["width"] - 1
+
+      # loop through every vertical stripe of the sprite on screen
+      for (stripe = drawStartX; stripe < drawEndX; stripe++) {
+        texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+        # the conditions in the if are:
+        # 1) it's in front of camera plane so you don't see things behind you
+        # 2) it's on the screen (left)
+        # 3) it's on the screen (right)
+        # 4) ZBuffer, with perpendicular distance
+        if (transformY > 0 && stripe > 0 && stripe < scr["width"] && transformY < ZBuffer[stripe]) {
+          for (y = drawStartY; y < drawEndY; y++) # for every pixel of the current stripe
+          {
+            d = y * 256 - scr["height"] * 128 + spriteHeight * 128; # 256 and 128 factors to avoid floats
+            texY = ((d * texHeight) / spriteHeight) / 256;
+
+            c = sprite[object[i]["sprite"]][int(texY) * texWidth + int(texX)]; # get current color from the texture
+            if (c != sprite[object[i]["sprite"]]["transparent"])
+              pixel(scr, stripe, y, c)
+          }
+        }
+      }
+
     }
 
     # layer minimap on top of screenbuffer
@@ -298,7 +399,6 @@ BEGIN {
 
     # draw screenbuffer to terminal
     draw(scr, -1,1)
-    system("sleep 0.1")
 
     ## handle user input
     key = input()
@@ -389,7 +489,9 @@ BEGIN {
     # TODO colision detection
     #if (worldMap[int(posY * worldMap["width"] + newPosX)] == " ") posX = newPosX
     #if (worldMap[int(newPosY * worldMap["width"] + PosX)] == " ") posY = newPosY
-    posX = newPosX
-    posY = newPosY
+    if ( (int(newPosX) > 0) && (int(newPosX) < worldMap["width"]-1) )
+      posX = newPosX
+    if ( (int(newPosY) > 0) && (int(newPosY) < worldMap["height"]-1) )
+      posY = newPosY
   }
 }
