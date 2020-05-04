@@ -58,7 +58,7 @@ function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
 
     switch ($1) {
       case "map":
-        match($0, /^ *map \"([^\"]+)\" *$/, str)
+        match($0, /^ *map "([^"]+)" *$/, str)
 
         # check line length (map width)
         if (!map["width"]) map["width"] = length(str[1])
@@ -144,7 +144,8 @@ BEGIN {
   KEY_MMAP  = "m"
 
   #init(scr)
-  init(scr, 128,64)
+  #init(scr, 128,64)
+  init(scr, 160,120)
 
   texWidth = 64
   texHeight = 64
@@ -162,8 +163,9 @@ BEGIN {
 
   # camera plane
   planeX = 0
-  planeY = (scr["width"] / (scr["height"]*2)) * -1
+  planeY = ((scr["height"]*2) / scr["width"]) * -1
 
+  # rotation and movement speed
   rotSpeed = 3.14159265 / 8
   moveSpeed = 0.4
 
@@ -192,15 +194,14 @@ BEGIN {
   }
 
   ## load map
-  loadMap(worldMap, object, "maps/wolf.w3d")
+  #loadMap(worldMap, object, "maps/wolf.w3d")
+  loadMap(worldMap, object, "maps/objects.w3d")
 
   ##
   ## main loop
   ##
 
-#for (i in sprite[0])
-#  printf("sprite[0][%s] == [%s]\n", i, sprite[0][i])
-#exit 0
+  cursor("off")
 
   frameNr = 0
 #  while (frameNr++ < 1) {
@@ -364,15 +365,15 @@ BEGIN {
       # calculate lowest and highest pixel to fill in current stripe
       drawStartY = (-spriteHeight / 2) + (scr["height"] / 2)
       if (drawStartY < 0) drawStartY = 0
-      drawEndY = (spriteHeight / 2) + (scr["height"] / 2)
-      if (drawEndY >= scr["height"]) drawEndY = scr["height"] - 1
+      drawEndY = (spriteHeight / 2) + (scr["height"] / 2) - 1
+      if (drawEndY > scr["height"]) drawEndY = scr["height"]
 
       # calculate width of the sprite
       spriteWidth = abs( int(scr["height"] / transformY))
       drawStartX = int( (-spriteWidth / 2) + spriteScreenX)
       if (drawStartX < 0) drawStartX = 0
       drawEndX = (spriteWidth / 2) + spriteScreenX
-      if (drawEndX >= scr["width"]) drawEndX = scr["width"] - 1
+      if (drawEndX > scr["width"]) drawEndX = scr["width"] 
 
 
       # loop through every vertical stripe of the sprite on screen
@@ -411,6 +412,7 @@ BEGIN {
 
     # quit key exits game
     if (key == KEY_QUIT) {
+      cursor("on")
       exit 0
     }
 
