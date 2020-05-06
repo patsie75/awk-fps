@@ -10,7 +10,7 @@ function sortDist(i1, v1, i2, v2) {
 function darken(col, val,    arr) {
   val = (val > 1) ? val : 1
   if (split(col, arr, ";") == 3)
-    return sprintf("%d;%d;%d", arr[1]/val, arr[2]/val, arr[3]/val)
+    return sprintf("%d;%d;%d", min(255,arr[1]/val), min(255,arr[2]/val), min(255,arr[3]/val))
   else return col
 }
 
@@ -70,7 +70,7 @@ function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
         for (x=0; x<map["width"]; x++) {
           c = substr(str[1], x+1, 1)
           switch(c) {
-            case "s": c = " "; posX = newPosX = x; posY = newPosY = y; break
+            case "s": c = " "; posX = newPosX = x + 0.5; posY = newPosY = y + 0.5; break
           }
           map[y*map["width"]+x] = c
         }
@@ -143,9 +143,8 @@ BEGIN {
   KEY_ROTRF = "L"
   KEY_MMAP  = "m"
 
-  #init(scr)
-  #init(scr, 128,64)
-  init(scr, 160,120)
+  init(scr)
+  #init(scr, 160,100)
 
   texWidth = 64
   texHeight = 64
@@ -163,7 +162,7 @@ BEGIN {
 
   # camera plane
   planeX = 0
-  planeY = ((scr["height"]*2) / scr["width"]) * -1
+  planeY = -0.75
 
   # rotation and movement speed
   rotSpeed = 3.14159265 / 8
@@ -209,11 +208,11 @@ BEGIN {
 
     # ceiling and floor
     for (y=0; y<scr["height"]/2; y++) {
-      c = darken(COL_DGRAY, y/15+1)
+      c = darken(COL_FLOOR, y/25+1)
       hline(scr, 0,y, scr["width"], c)
     }
     for (y=scr["height"]/2; y<scr["height"]; y++) {
-      c = darken(COL_FLOOR, (scr["height"]-y)/15+1)
+      c = darken(COL_DGRAY, (scr["height"]-y)/25+1)
       hline(scr, 0,y, scr["width"], c)
     }
 
@@ -326,8 +325,8 @@ BEGIN {
         # make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
         tmp = (perpWallDist > 1) ? perpWallDist : 1
 
-        if (side == 1) color = darken(color, 2 + tmp)
-        else color = darken(color, tmp)
+        if (side == 1) color = darken(color, (tmp+2)/2)
+        else color = darken(color, tmp/2)
 
         ## draw final pixel to buffer
         pixel(scr, x,y, color)
@@ -393,8 +392,12 @@ BEGIN {
             texY = ((d * texHeight) / spriteHeight) / 256 + 1;
 
             c = sprite[object[i]["sprite"]][int(texY) * texWidth + int(texX)]; # get current color from the texture
-            if (c != sprite[object[i]["sprite"]]["transparent"])
+            if (c != sprite[object[i]["sprite"]]["transparent"]) {
+              tmp = (object[i]["dist"] > 1) ? object[i]["dist"] : 1
+              c = darken(c, tmp/5)
+
               pixel(scr, stripe, y, c)
+            }
           }
         }
       }
