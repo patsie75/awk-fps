@@ -3,18 +3,22 @@
 @include "lib/2d.gawk"
 @include "lib/xpm2.gawk"
 
+function sortDist(i1, v1, i2, v2) {
+  return (v2["dist"] - v1["dist"])
+}
+
 function darken(col, val,    arr) {
   val = (val > 1) ? val : 1
   if (split(col, arr, ";") == 3)
-    return sprintf("%d;%d;%d", arr[1]/val, arr[2]/val, arr[3]/val)
+    return sprintf("%d;%d;%d", min(255,arr[1]/val), min(255,arr[2]/val), min(255,arr[3]/val))
   else return col
 }
 
 function floor(n,    x) { x=int(n); return(x==n || n>0) ? x : x-1 }
 
 function miniMap(scr, map, posX,posY, offsetX, offsetY,    x,y) {
-  if (offsetX < 0) offsetX = scr["width"] + offsetX
-  if (offsetY < 0) offsetY = scr["height"] + offsetY
+  if (offsetX < 0) offsetX = scr["width"] + offsetX - 1
+  if (offsetY < 0) offsetY = scr["height"] + offsetY - 1
 
   for (y=-5; y<=5; y++) {
     for (x=-5; x<=5; x++) {
@@ -39,37 +43,58 @@ function input() {
   return(key)
 }
 
-function loadMap(map, fname,     line, x, y) {
+function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
   map["width"] = 0
   map["height"] = 0
   y = 0
+  obj = 0
 
-  while ((getline line < fname) > 0) {
+  while ((getline < fname) > 0) {
     linenr++
-#printf("loadMap(): linenr: %d, line: \"%s\" (len: %d)\n", linenr, line, length(line))
+#printf("loadMap(): linenr: %d, line: \"%s\" (len: %d) NR == %d\n", linenr, $0, length($0), NF)
 
-    # skip empty lines
-    if (length(line) == 0) continue
+    # skip empty and comment lines
+    if ((NF == 0) || ($1 ~ /^#/)) continue
 
-    # check line length (map width)
-    if (!map["width"]) map["width"] = length(line)
-    else if (map["width"] != length(line)) {
-      printf("Error: line %d, file \"%s\", invalid line length (%d != %d)\n", linenr, fname, length(line), map["width"])
-      exit 1
+    switch ($1) {
+      case "map":
+        match($0, /^ *map "([^"]+)" *$/, str)
+
+        # check line length (map width)
+        if (!map["width"]) map["width"] = length(str[1])
+        else if (map["width"] != length(str[1])) {
+          printf("loadMap(): Error on line #%d, file \"%s\": invalid line length (%d != %d)\n", linenr, fname, length(str[1]), map["width"])
+          exit 1
+        }
+
+        for (x=0; x<map["width"]; x++) {
+          c = substr(str[1], x+1, 1)
+          switch(c) {
+            case "s": c = " "; posX = newPosX = x + 0.5; posY = newPosY = y + 0.5; break
+          }
+          map[y*map["width"]+x] = c
+        }
+        y++
+        break
+
+      case "obj":
+        object[obj]["x"] = $2 + 0.5
+        object[obj]["y"] = $3 + 0.5
+        object[obj]["sprite"] = $4
+        obj++
+        break
+
+      default:
+        printf("loadMap(): Error on line #%d, file \"%s\": unknown type \"%s\". Only \"map\" and \"obj\" allowed\n", linenr, file, $1)
+        exit 1
     }
-
-    for (x=0; x<map["width"]; x++) {
-      c = substr(line, x+1, 1)
-      switch(c) {
-        case "s": c = " "; posX = newPosX = x; posY = newPosY = y; break
-      }
-      map[y*map["width"]+x] = c
-    }
-    y++
 
   }
+
+  #object["objects"] = obj
   map["height"] = y
   close(fname)
+
 }
 
 
@@ -119,7 +144,7 @@ BEGIN {
   KEY_MMAP  = "m"
 
   init(scr)
-  #init(scr, 120,60)
+  #init(scr, 160,100)
 
   texWidth = 64
   texHeight = 64
@@ -139,6 +164,7 @@ BEGIN {
   planeX = 0
   planeY = -0.75
 
+  # rotation and movement speed
   rotSpeed = 3.14159265 / 8
   moveSpeed = 0.4
 
@@ -146,7 +172,7 @@ BEGIN {
   nTextures = split("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mTextures, "")
 
   ## load texture map
-  loadxpm2(tex, "gfx/wolftextures.xpm2")
+  loadxpm2(tex, "gfx/textures.xpm2")
 
   ## split up texture map into single textures
   for (i=0; i<114; i+=2) {
@@ -156,12 +182,25 @@ BEGIN {
     copy(wallTex[c], tex, 0,0, (i%6)*texWidth,int(i/6)*texHeight)
   }
 
-  ## load a map
-  loadMap(worldMap, "maps/wolf.w3d")
+  ## load spritemap
+  loadxpm2(spr, "gfx/sprites.xpm2")
+
+  for (i=0; i<50; i++) {
+    sprite[i][0] = 0
+    init(sprite[i], texWidth, texHeight)
+    copy(sprite[i], spr, 0,0, (i%5)*(texWidth+1),int(i/5)*(texHeight+1))
+    sprite[i]["transparent"] = "152;0;136"; # #980088 / cyan
+  }
+
+  ## load map
+  #loadMap(worldMap, object, "maps/wolf.w3d")
+  loadMap(worldMap, object, "maps/objects.w3d")
 
   ##
   ## main loop
   ##
+
+  cursor("off")
 
   frameNr = 0
 #  while (frameNr++ < 1) {
@@ -169,11 +208,11 @@ BEGIN {
 
     # ceiling and floor
     for (y=0; y<scr["height"]/2; y++) {
-      c = darken(COL_DGRAY, y/15+1)
+      c = darken(COL_FLOOR, y/25+1)
       hline(scr, 0,y, scr["width"], c)
     }
     for (y=scr["height"]/2; y<scr["height"]; y++) {
-      c = darken(COL_FLOOR, (scr["height"]-y)/15+1)
+      c = darken(COL_DGRAY, (scr["height"]-y)/25+1)
       hline(scr, 0,y, scr["width"], c)
     }
 
@@ -244,6 +283,7 @@ BEGIN {
 #printf("perpWallDist: %.2f\n", perpWallDist)
       # Calculate height of line to draw on screen
       lineHeight = int(scr["height"] / perpWallDist)
+      lineHeight = lineHeight ? lineHeight : 1
 
       # calculate lowest and highest pixel to fill in current stripe
       drawStart = -lineHeight / 2 + scr["height"] / 2
@@ -285,12 +325,83 @@ BEGIN {
         # make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
         tmp = (perpWallDist > 1) ? perpWallDist : 1
 
-        if (side == 1) color = darken(color, 2 + tmp)
-        else color = darken(color, tmp)
+        if (side == 1) color = darken(color, (tmp+2)/2)
+        else color = darken(color, tmp/2)
 
         ## draw final pixel to buffer
         pixel(scr, x,y, color)
       }
+
+      ZBuffer[x] = perpWallDist;
+    }
+
+    ##
+    ## Sprites
+    ##
+
+    # calculate distance from player
+    for (i in object)
+      object[i]["dist"] = ( (posX - object[i]["x"]) * (posX - object[i]["x"]) + (posY - object[i]["y"]) * (posY - object[i]["y"]) )
+
+    # sort objects by distance from player (far -> near)
+    asort(object, object, "sortDist")
+
+    # loop through objects (far -> near)
+    for (i in object) {
+#printf("object[%s][sprite] = [%s]\n", i, object[i]["sprite"])
+      spriteX = object[i]["x"] - posX
+      spriteY = object[i]["y"] - posY
+
+      invDet = 1.0 / (planeX * dirY - dirX * planeY); # required for correct matrix multiplication
+
+      transformX = invDet * (dirY * spriteX - dirX * spriteY);
+      transformY = invDet * (-planeY * spriteX + planeX * spriteY); # this is actually the depth inside the screen, that what Z is in 3D
+
+      spriteScreenX = int((scr["width"] / 2) * (1 + transformX / transformY));
+
+      # calculate height of the sprite on screen
+      spriteHeight = abs(int(scr["height"] / transformY)); # using 'transformY' instead of the real distance prevents fisheye
+      # calculate lowest and highest pixel to fill in current stripe
+      drawStartY = (-spriteHeight / 2) + (scr["height"] / 2)
+      if (drawStartY < 0) drawStartY = 0
+      drawEndY = (spriteHeight / 2) + (scr["height"] / 2) - 1
+      if (drawEndY > scr["height"]) drawEndY = scr["height"]
+
+      # calculate width of the sprite
+      spriteWidth = abs( int(scr["height"] / transformY))
+      drawStartX = int( (-spriteWidth / 2) + spriteScreenX)
+      if (drawStartX < 0) drawStartX = 0
+      drawEndX = (spriteWidth / 2) + spriteScreenX
+      if (drawEndX > scr["width"]) drawEndX = scr["width"] 
+
+
+      # loop through every vertical stripe of the sprite on screen
+      for (stripe = drawStartX; stripe < drawEndX; stripe++) {
+        #texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+        texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth)
+        # the conditions in the if are:
+        # 1) it's in front of camera plane so you don't see things behind you
+        # 2) it's on the screen (left)
+        # 3) it's on the screen (right)
+        # 4) ZBuffer, with perpendicular distance
+#if (object[i]["sprite"] == 3) printf("transformY == %s, stripe == %s, ZBuffer == %s, width == %s\n", transformY, stripe, ZBuffer[stripe], scr["width"])
+        if (transformY > 0 && stripe > 0 && stripe < scr["width"] && transformY < ZBuffer[stripe]) {
+          for (y = drawStartY; y < drawEndY; y++) # for every pixel of the current stripe
+          {
+            d = y * 256 - scr["height"] * 128 + spriteHeight * 128; # 256 and 128 factors to avoid floats
+            texY = ((d * texHeight) / spriteHeight) / 256 + 1;
+
+            c = sprite[object[i]["sprite"]][int(texY) * texWidth + int(texX)]; # get current color from the texture
+            if (c != sprite[object[i]["sprite"]]["transparent"]) {
+              tmp = (object[i]["dist"] > 1) ? object[i]["dist"] : 1
+              c = darken(c, tmp/5)
+
+              pixel(scr, stripe, y, c)
+            }
+          }
+        }
+      }
+
     }
 
     # layer minimap on top of screenbuffer
@@ -298,13 +409,13 @@ BEGIN {
 
     # draw screenbuffer to terminal
     draw(scr, -1,1)
-    system("sleep 0.1")
 
     ## handle user input
     key = input()
 
     # quit key exits game
     if (key == KEY_QUIT) {
+      cursor("on")
       exit 0
     }
 
@@ -389,7 +500,9 @@ BEGIN {
     # TODO colision detection
     #if (worldMap[int(posY * worldMap["width"] + newPosX)] == " ") posX = newPosX
     #if (worldMap[int(newPosY * worldMap["width"] + PosX)] == " ") posY = newPosY
-    posX = newPosX
-    posY = newPosY
+    if ( (int(newPosX) > 0) && (int(newPosX) < worldMap["width"]-1) )
+      posX = newPosX
+    if ( (int(newPosY) > 0) && (int(newPosY) < worldMap["height"]-1) )
+      posY = newPosY
   }
 }

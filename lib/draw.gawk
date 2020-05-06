@@ -128,57 +128,8 @@ function fps(f) {
 
 # copy graphic buffer to another graphic buffer (with transparency, and edge clipping)
 # usage: dst, src, [dstx, dsty, [srcx, srcy, [srcw, srch, [transparent] ] ] ]
-#function copy(dst, src, dstx, dsty, srcx, srcy, srcw, srch, transp,   dx,dy, dw,dh, sx,sy, sw,sh, x,y, w,h, t, pix, sw_mul_y, ydy_mul_dw, xdx) {
-#  dw = dst["width"]
-#  dh = dst["height"]
-#  sw = src["width"]
-#  sh = src["height"]
-#
-#  dx = int(src["x"])
-#  dy = int(src["y"])
-#  sx = 0
-#  sy = 0
-#  w = src["width"]
-#  h = src["height"]
-#
-#  if (length(dstx)) dx = dstx
-#  if (length(dsty)) dy = dsty
-#  if (length(srcx)) sx = srcx
-#  if (length(srcy)) sy = srcy
-#  if (length(srcw)) w = ((srcw > 0) && (srcw < src["width"])) ? srcw : w
-#  if (length(srch)) h = ((srch > 0) && (srch < src["height"])) ? srch : h
-#
-#  if (sprintf("%s", transp)) t = transp
-#  else if ("transparent" in src) t = src["transparent"]
-#  else if ("transparent" in glib) t = glib["transparent"]
-#
-#  for (y=sy; y<(sy+h); y++) {
-#    # clip image off top/bottom
-#    if ((dy + y) >= dh) break
-#    if ((dy + y) < 0) continue
-#    sw_mul_y = sw * y
-#    ydy_mul_dw = (y - sy + dy) * dw
-#    for (x=sx; x<(sx+w); x++) {
-#      xdx = x - sx + dx
-#
-#      # clip image on left/right
-#      if (xdx >= dw) break
-#      if (xdx < 0) continue
-#
-#      # draw non-transparent pixel or else background
-#      pix = src[sw_mul_y + x]
-#      dst[ydy_mul_dw + xdx] = ((pix == t) || (pix == "None")) ? dst[ydy_mul_dw + xdx] : pix
-#      #if ((pix == t) || (pix == "None"))
-#      #  dst[ydy_mul_dw + xdx] = dst[ydy_mul_dw + xdx]
-#      #else
-#      #  dst[ydy_mul_dw + xdx] = pix
-#    }
-#  }
-#}
-
-# copy graphic buffer to another graphic buffer (with transparency, and edge clipping)
-# usage: dst, src, [dstx, dsty, [srcx, srcy, [srcw, srch, [transparent] ] ] ]
 function copy(dst, src, dstx, dsty, srcx, srcy, srcw, srch, transp,   dx,dy, dw,dh, sx,sy, sw,sh, x,y, w,h, t, pix, sw_mul_y, ydy_mul_dw, xdx) {
+  # src/dst default values
   dw = dst["width"]
   dh = dst["height"]
   sw = src["width"]
@@ -191,6 +142,7 @@ function copy(dst, src, dstx, dsty, srcx, srcy, srcw, srch, transp,   dx,dy, dw,
   w = src["width"]
   h = src["height"]
 
+  # arguments override
   if (length(dstx)) dx = dstx
   if (length(dsty)) dy = dsty
   if (length(srcx)) sx = srcx
@@ -198,6 +150,7 @@ function copy(dst, src, dstx, dsty, srcx, srcy, srcw, srch, transp,   dx,dy, dw,
   if (length(srcw)) w = ((srcw > 0) && (srcw < src["width"])) ? srcw : w
   if (length(srch)) h = ((srch > 0) && (srch < src["height"])) ? srch : h
 
+  # transparancy
   if (sprintf("%s", transp)) t = transp
   else if ("transparent" in src) t = src["transparent"]
   else if ("transparent" in glib) t = glib["transparent"]
@@ -208,6 +161,7 @@ function copy(dst, src, dstx, dsty, srcx, srcy, srcw, srch, transp,   dx,dy, dw,
     if ((y - sy + dh) < 0) continue
     sw_mul_y = sw * y
     ydy_mul_dw = (y - sy + dy) * dw
+
     for (x=sx; x<(sx+w); x++) {
       xdx = x - sx + dx
 
