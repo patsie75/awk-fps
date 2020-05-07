@@ -6,7 +6,7 @@ So during easter of 2020 I started programming and came up with this first resul
 ## Controls
 key | action
 --- | -------------------
-**w**/**s** | forward/backwward
+**w**/**s** | forward/backward
 **a**/**d** | strafe left/right
 **j**/**l** | turn left/right
 **TAB** | move minimap
@@ -15,7 +15,7 @@ key | action
 
 ## Showcase
 Here's a static image of the result:  
- * ![awk-fps image](/screenshot01.jpg)
+![awk-fps image](/screenshot01.jpg)
 
 For a moving version see:
  * [first attempt](https://youtu.be/8AJ9Kx_XycE)
