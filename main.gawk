@@ -144,7 +144,7 @@ BEGIN {
   KEY_ROTR  = "l"
   KEY_ROTRF = "L"
   KEY_MMAP  = "\t"
-  KEY_SHADE = "`"
+  KEY_SHADE = "~"
 
   cfg["shade"] = 1
 
