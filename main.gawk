@@ -8,10 +8,12 @@ function sortDist(i1, v1, i2, v2) {
 }
 
 function darken(col, val,    arr) {
-  val = (val > 1) ? val : 1
-  if (split(col, arr, ";") == 3)
-    return sprintf("%d;%d;%d", min(255,arr[1]/val), min(255,arr[2]/val), min(255,arr[3]/val))
-  else return col
+  if (cfg["shade"]) {
+    val = (val > 1) ? val : 1
+    if (split(col, arr, ";") == 3)
+      return sprintf("%d;%d;%d", min(255,arr[1]/val), min(255,arr[2]/val), min(255,arr[3]/val))
+  }
+  return col
 }
 
 function floor(n,    x) { x=int(n); return(x==n || n>0) ? x : x-1 }
@@ -106,7 +108,7 @@ BEGIN {
   COL_LGREEN   = "64;255;64"
   COL_GREEN    = "0;255;0"
   COL_DGREEN   = "0;128;0"
-  COL_FLOOR    = "16;64;16"
+  COL_FLOOR    = "100;100;100"
   COL_LYELLOW  = "255;255;128"
   COL_YELLOW   = "255;255;0"
   COL_DYELLOW  = "128;128;0"
@@ -132,7 +134,7 @@ BEGIN {
   wall["6"] = COL_MAGENTA
   wall["7"] = COL_WHITE
 
-  KEY_QUIT  = "Q"
+  KEY_QUIT  = "\033"
   KEY_MOVF  = "w"
   KEY_MOVB  = "s"
   KEY_MOVL  = "a"
@@ -141,7 +143,10 @@ BEGIN {
   KEY_ROTLF = "J"
   KEY_ROTR  = "l"
   KEY_ROTRF = "L"
-  KEY_MMAP  = "m"
+  KEY_MMAP  = "\t"
+  KEY_SHADE = "`"
+
+  cfg["shade"] = 1
 
   init(scr)
   #init(scr, 160,100)
@@ -208,11 +213,11 @@ BEGIN {
 
     # ceiling and floor
     for (y=0; y<scr["height"]/2; y++) {
-      c = darken(COL_FLOOR, y/25+1)
+      c = darken(COL_DGRAY, y/25+1)
       hline(scr, 0,y, scr["width"], c)
     }
     for (y=scr["height"]/2; y<scr["height"]; y++) {
-      c = darken(COL_DGRAY, (scr["height"]-y)/25+1)
+      c = darken(COL_FLOOR, (scr["height"]-y)/25+1)
       hline(scr, 0,y, scr["width"], c)
     }
 
@@ -495,6 +500,9 @@ BEGIN {
         case "-7,-7": mmPosX =  7; mmPosY = -7; break
         default:      mmPosX =  7; mmPosY =  7
       }
+    }
+    if (key == KEY_SHADE) {
+      cfg["shade"] = cfg["shade"] ? 0 : 1
     }
 
     # TODO colision detection
