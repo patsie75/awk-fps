@@ -62,6 +62,7 @@ function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
       case "map":
         match($0, /^ *map "([^"]+)" *$/, str)
 
+#printf("map[%s] = { %s }\n", y, str[1])
         # check line length (map width)
         if (!map["width"]) map["width"] = length(str[1])
         else if (map["width"] != length(str[1])) {
@@ -83,6 +84,7 @@ function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
         object[obj]["x"] = $2 + 0.5
         object[obj]["y"] = $3 + 0.5
         object[obj]["sprite"] = $4
+#printf("object[%d] = { %s, %s, %s }\n", obj, object[obj]["x"], object[obj]["y"], object[obj]["sprite"])
         obj++
         break
 
@@ -97,6 +99,7 @@ function loadMap(map, object, fname,     linenr, x,y, c, obj, str) {
   map["height"] = y
   close(fname)
 
+  printf("map: { %d, %d }\n", map["width"], map["height"])
 }
 
 
@@ -199,7 +202,8 @@ BEGIN {
 
   ## load map
   #loadMap(worldMap, object, "maps/wolf.w3d")
-  loadMap(worldMap, object, "maps/objects.w3d")
+  #loadMap(worldMap, object, "maps/objects.w3d")
+  loadMap(worldMap, object, "maps/jail.w3d")
 
   ##
   ## main loop
@@ -362,6 +366,9 @@ BEGIN {
       transformX = invDet * (dirY * spriteX - dirX * spriteY);
       transformY = invDet * (-planeY * spriteX + planeX * spriteY); # this is actually the depth inside the screen, that what Z is in 3D
 
+      transformY = transformY ? transformY : 0.001
+
+#printf("object[%s] { %s, %s, %s }, transform: { %s, %s }, sprite: { %s, %s } pos: { %s, %s }\n", i, object[i]["x"], object[i]["y"], object[i]["sprite"], transformX, transformY, spriteX, spriteY, posX, posY)
       spriteScreenX = int((scr["width"] / 2) * (1 + transformX / transformY));
 
       # calculate height of the sprite on screen

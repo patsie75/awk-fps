@@ -1,0 +1,154 @@
+24  5 16
+19  5 16
+19 11 16
+10 17 16
+10 21 16
+ 8 26 16
+12 26 16
+ 8 30 16
+12 30 16
+10 37 16
+14 42 16
+ 6 42 16
+ 2 39 16
+ 6 27 16
+ 2 33 16
+ 2 24 16
+ 2 20 16
+ 2 16 16
+ 6 21 16
+
+##
+## room 1 (jail)
+##
+# lights
+34 47 16
+34 52 16
+34 56 16
+31 56 16
+38 56 16
+
+# objects
+40 56 28
+34 57 26
+37 52 26
+40 52 21
+38 47 11
+28 46 21
+29 46 26
+
+##
+## room 2 (blue hallway)
+##
+34 43 16
+34 39 16
+34 35 16
+
+##
+## room 3 (grey guardroom)
+##
+# lights
+29 28  6
+34 28  6
+39 28  6
+# objects
+32 24 13
+36 24 13
+27 25 13
+27 31 13
+41 25 13
+41 31 13
+
+##
+## room 5 (dog room)
+##
+# objects
+58 37  8
+59 40 25
+
+##
+## room 6 (blue storage room)
+##
+# objects
+54 24 26
+58 24  2
+59 24 37
+60 24 37
+61 24 37
+61 25 37
+56 29 15
+57 29 26
+59 29 15
+56 33 38
+59 33 39
+60 32 26
+
+##
+## room 7 (wood corridor)
+##
+# lights
+34 21 16
+34 17 16
+34 13 16
+# objects
+28 18 28
+28 19 28
+28 20 29
+29 19 27
+29 20 27
+37 17 18
+
+##
+## room 8 (wood guardroom)
+##
+# lights
+34  5  6
+# objects
+31  3  4
+34  3  4
+37  3  4
+29  2 14
+39  2 14
+
+##
+## room 9 (treasure room)
+##
+# objects
+41  4 31
+42  4 31
+43  4 32
+43  5 31
+41  6 32
+42  6 32
+43  6 32
+
+##
+## room 10 (grey corridor)
+##
+
+
+#  2 waterpool
+#  4 chairtable
+#  6 chandelier
+#  8 dogfood
+# 11 floorskel
+# 13 bluepotfern
+# 14 bluevase
+# 15 table
+# 16 ceillamp
+# 18 armor
+# 21 pileskull
+# 25 basket
+# 26 chicken
+# 27 medkit
+# 28 clip
+# 29 machinegun
+# 30 gatlingun
+# 31 goldcross
+# 32 goldcup
+# 33 goldchest
+# 34 goldcrown
+# 37 barrel
+# 38 fullwell
+# 39 emptywell
+

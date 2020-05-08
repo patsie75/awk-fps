@@ -1,26 +1,138 @@
-      hh hh      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-      h   h      
-hhhhhhh   hhhhhhh
-hhhhhhhh hhhhhhhh
-hh    h   h    hh
-hh             hh
-hh    h   h    hh
-hh    h   h    hh
-hhhhhhh   hhhhhhh
-hh    h   h    hh
-hh s        a  hh
-hh    h   h    hh
-hhhhhhh   hhhhhhh
-hh             hh
-hh             hh
-hh             hh
-hhhhhhhhhhhhhhhhh
+map "                            llllllllllllll                     "
+map "                            llljllllljllll                     "
+map "     aaaaaa                 l           llllll                 "
+map "     a    aaaaaaaaabbabbcabal           llllll                 "
+map "     a    aaaaaaab          l           l   ll                 "
+map "     a     aaaaaaa                          jl                 "
+map "     a     aaaaaab          l           l   ll                 "
+map "     abaab baaaaaa   aaacaabl           llllll                 "
+map "     b         baa   aaaaaaak           klllll                 "
+map "     a         aab   abaaaaal           llllll                 "
+map "     a         b       aaaaallljll lljllll                     "
+map "     b                 aaaaalllll   llllll                     "
+map "     a         a       aaaaa  lll   llllll                     "
+map "bbbbaa         aabaaabaabaaa  llk   kl                         "
+map "ababaa         a              lll   ll                         "
+map "b   aabaaa aaaba          lllllll   llll                       "
+map "a   baaaa   baaa          lllllll   llll                       "
+map "a   aaaaa   aaaa          ll          ll                       "
+map "ba aaaaaa   baaa          ll  lll   llll                       "
+map "a   aabaa   aaaa          ll  lll   llll                       "
+map "a   b   a   aaaa          ll  lll   llll                       "
+map "a       a   aaaa          llllllj   jl                         "
+map "a   a   b   aaaa          lllllll   ll              iiiiiiiiiii"
+map "b   ababaa aabaaa         aaaaaalj jlbbbbbbb        ihhihhhiiih"
+map "a   aa         aa         babacb     acabaab        ih        h"
+map "b   ab         aa         a               bbiiiiiiiiih        h"
+map "a   ab         aa         f               fhhhhihhhiih        h"
+map "a    a         ba         a                h         h        h"
+map "a              aa         b                                   e"
+map "a    a         aa         b                h         i        h"
+map "a   aa         bb         f               fhhh    iihh        h"
+map "b   aa         aa         b               bbbhh  hhhhi        h"
+map "a   aa         aa         aadaba     abdabab hi  ihhih        h"
+map "a   aabaab aabbaa         aaaaaahh ihbbbbbbb hi  hhiiiih ih ihi"
+map "a   baaaa   aaaa                h   i        hh  ihiiihiiiiiiii"
+map "a   aaaab   baaa                i   i        hi  hhiiiiiiiiiiii"
+map "b   a   a   aaaa                h   i        hh  ihhhhhhhhhhhh "
+map "a       a   aaaa                i   h        hi  hhi h i i hih "
+map "b   b   b   baaa                i   i        hh   h         hh "
+map "b   aabaa   baaaabaaaaaaaaaa    h   h        hh             eh "
+map "a   babab   ababbaabaababaaa    i   h        hi   h         hh "
+map "b                b      aaaa    h   i        hhihhhi h h h hih "
+map "b                         aa    i   i        hhhhhhhhhhhhhhhhh "
+map "a                a      aaaa    i   h                          "
+map "abbabbabbaaaaabaaaabaaabaahhhhhhh   ihhhhhh                    "
+map "                          hhhihihh hhhhhihh                    "
+map "                          hi    h   h    ih                    "
+map "                          hh             ih                    "
+map "                          hh    h   h    ih                    "
+map "                          hi    i   i    ih                    "
+map "                          hhhihhi   hhhhhhh                    "
+map "                          hh    h   h    hh                    "
+map "                          hi s           ih                    "
+map "                          hh    h   h    hh                    "
+map "                          hhiihhi   ihhihhh                    "
+map "                          hh             hh                    "
+map "                          hi             hh                    "
+map "                          hh             hh                    "
+map "                          hheihehighieihehh                    "
+obj  24   5  16
+obj  19   5  16
+obj  19  11  16
+obj  10  17  16
+obj  10  21  16
+obj   8  26  16
+obj  12  26  16
+obj   8  30  16
+obj  12  30  16
+obj  10  37  16
+obj  14  42  16
+obj   6  42  16
+obj   2  39  16
+obj   6  27  16
+obj   2  33  16
+obj   2  24  16
+obj   2  20  16
+obj   2  16  16
+obj   6  21  16
+obj  34  47  16
+obj  34  52  16
+obj  34  56  16
+obj  31  56  16
+obj  38  56  16
+obj  40  56  28
+obj  34  57  26
+obj  37  52  26
+obj  40  52  21
+obj  38  47  11
+obj  28  46  21
+obj  29  46  26
+obj  34  43  16
+obj  34  39  16
+obj  34  35  16
+obj  29  28   6
+obj  34  28   6
+obj  39  28   6
+obj  32  24  13
+obj  36  24  13
+obj  27  25  13
+obj  27  31  13
+obj  41  25  13
+obj  41  31  13
+obj  58  37   8
+obj  59  40  25
+obj  54  24  26
+obj  58  24   2
+obj  59  24  37
+obj  60  24  37
+obj  61  24  37
+obj  61  25  37
+obj  56  29  15
+obj  57  29  26
+obj  59  29  15
+obj  56  33  38
+obj  59  33  39
+obj  60  32  26
+obj  34  21  16
+obj  34  17  16
+obj  34  13  16
+obj  28  18  28
+obj  28  19  28
+obj  28  20  29
+obj  29  19  27
+obj  29  20  27
+obj  37  17  18
+obj  34   5   6
+obj  31   3   4
+obj  34   3   4
+obj  37   3   4
+obj  29   2  14
+obj  39   2  14
+obj  41   4  31
+obj  42   4  31
+obj  43   4  32
+obj  43   5  31
+obj  41   6  32
+obj  42   6  32
+obj  43   6  32
