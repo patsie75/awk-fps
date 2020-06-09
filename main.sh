@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-function _exit() { /usr/bin/stty "$saved"; }
+stty=$(which stty)
+function _exit() { "$stty" "$saved"; }
 
-saved="$(/usr/bin/stty -g)"
-/usr/bin/stty -echo raw
+saved="$("$stty" -g)"
+"$stty" -echo raw
 
 trap _exit EXIT
 
-/usr/bin/gawk -f ./fps.gawk
+#/usr/bin/gawk -f ./fps.gawk
+/usr/local/bin/gawk5 -f ./fps/main.gawk

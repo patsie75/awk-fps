@@ -84,6 +84,7 @@ function draw(scr, xpos,ypos,    x,y,ywidth,y2width,buf,pix) {
 
     # for each pixel in line
     for (x=0; x<w; x++) {
+      #pix = sprintf("%c", (x < (w/2)) ? " " : 0x2580)
       fg = scr[ywidth+x]
       bg = scr[y2width+x]
       if ((fg != prevfg) || (bg != prevbg))
