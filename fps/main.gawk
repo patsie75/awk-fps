@@ -178,15 +178,21 @@ BEGIN {
 
   cfg["KEY_QUIT"]  = "\033"
   cfg["KEY_MOVF"]  = "w"
+  cfg["KEY_MOVFF"] = "W"
   cfg["KEY_MOVB"]  = "s"
+  cfg["KEY_MOVBF"] = "S"
   cfg["KEY_MOVL"]  = "a"
+  cfg["KEY_MOVLF"] = "A"
   cfg["KEY_MOVR"]  = "d"
+  cfg["KEY_MOVRF"] = "D"
   cfg["KEY_ROTL"]  = "j"
   cfg["KEY_ROTLF"] = "J"
   cfg["KEY_ROTR"]  = "l"
   cfg["KEY_ROTRF"] = "L"
   cfg["KEY_MMAP"]  = "\t"
   cfg["KEY_SHADE"] = "~"
+  cfg["KEY_INCFOV"] = "+"
+  cfg["KEY_DECFOV"] = "-"
 
   # shading on/off
   cfg["shade"] = 1

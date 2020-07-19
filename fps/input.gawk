@@ -16,71 +16,57 @@ function event(key) {
   }
 
   # rotate left
-  if (key == cfg["KEY_ROTL"]) {
+  if ( (key == cfg["KEY_ROTL"]) || (key == cfg["KEY_ROTLF"]) ) {
+    spd = (key == cfg["KEY_ROTLF"]) ? 2 : 1
+
     oldDirX = dirX;
-    dirX = dirX * cos(cfg["rotSpeed"]) - dirY * sin(cfg["rotSpeed"]);
-    dirY = oldDirX * sin(cfg["rotSpeed"]) + dirY * cos(cfg["rotSpeed"]);
+    dirX = dirX * cos(cfg["rotSpeed"] * spd) - dirY * sin(cfg["rotSpeed"] * spd)
+    dirY = oldDirX * sin(cfg["rotSpeed"] * spd) + dirY * cos(cfg["rotSpeed"] * spd)
 
     oldPlaneX = planeX;
-    planeX = planeX * cos(cfg["rotSpeed"]) - planeY * sin(cfg["rotSpeed"]);
-    planeY = oldPlaneX * sin(cfg["rotSpeed"]) + planeY * cos(cfg["rotSpeed"]);
-  }
-
-  # rotate left fast
-  if (key == cfg["KEY_ROTLF"]) {
-    oldDirX = dirX
-    dirX = dirX * cos(cfg["rotSpeed"]*2) - dirY * sin(cfg["rotSpeed"]*2)
-    dirY = oldDirX * sin(cfg["rotSpeed"]*2) + dirY * cos(cfg["rotSpeed"]*2)
-
-    oldPlaneX = planeX
-    planeX = planeX * cos(cfg["rotSpeed"]*2) - planeY * sin(cfg["rotSpeed"]*2)
-    planeY = oldPlaneX * sin(cfg["rotSpeed"]*2) + planeY * cos(cfg["rotSpeed"]*2)
+    planeX = planeX * cos(cfg["rotSpeed"] * spd) - planeY * sin(cfg["rotSpeed"] * spd)
+    planeY = oldPlaneX * sin(cfg["rotSpeed"] * spd) + planeY * cos(cfg["rotSpeed"] * spd)
   }
 
   # rotate right
-  if (key == cfg["KEY_ROTR"]) {
+  if ( (key == cfg["KEY_ROTR"]) || (key == cfg["KEY_ROTRF"]) ) {
+    spd = (key == cfg["KEY_ROTRF"]) ? -2 : -1
+
     oldDirX = dirX
-    dirX = dirX * cos(cfg["rotSpeed"]*-1) - dirY * sin(cfg["rotSpeed"]*-1)
-    dirY = oldDirX * sin(cfg["rotSpeed"]*-1) + dirY * cos(cfg["rotSpeed"]*-1)
+    dirX = dirX * cos(cfg["rotSpeed"] * spd) - dirY * sin(cfg["rotSpeed"] * spd)
+    dirY = oldDirX * sin(cfg["rotSpeed"] * spd) + dirY * cos(cfg["rotSpeed"] * spd)
 
     oldPlaneX = planeX
-    planeX = planeX * cos(cfg["rotSpeed"]*-1) - planeY * sin(cfg["rotSpeed"]*-1)
-    planeY = oldPlaneX * sin(cfg["rotSpeed"]*-1) + planeY * cos(cfg["rotSpeed"]*-1)
-  }
-
-  # rotate right fast
-  if (key == cfg["KEY_ROTRF"]) {
-    oldDirX = dirX
-    dirX = dirX * cos(cfg["rotSpeed"]*-2) - dirY * sin(cfg["rotSpeed"]*-2)
-    dirY = oldDirX * sin(cfg["rotSpeed"]*-2) + dirY * cos(cfg["rotSpeed"]*-2)
-
-    oldPlaneX = planeX
-    planeX = planeX * cos(cfg["rotSpeed"]*-2) - planeY * sin(cfg["rotSpeed"]*-2)
-    planeY = oldPlaneX * sin(cfg["rotSpeed"]*-2) + planeY * cos(cfg["rotSpeed"]*-2)
+    planeX = planeX * cos(cfg["rotSpeed"] * spd) - planeY * sin(cfg["rotSpeed"] * spd)
+    planeY = oldPlaneX * sin(cfg["rotSpeed"] * spd) + planeY * cos(cfg["rotSpeed"] * spd)
   }
 
   # move forward
-  if (key == cfg["KEY_MOVF"]) {
-    newPosX = posX + dirX * cfg["moveSpeed"]
-    newPosY = posY + dirY * cfg["moveSpeed"]
+  if ( (key == cfg["KEY_MOVF"]) || (key == cfg["KEY_MOVFF"]) ) {
+    spd = (key == cfg["KEY_MOVFF"]) ? 2 : 1
+    newPosX = posX + dirX * cfg["moveSpeed"] * spd
+    newPosY = posY + dirY * cfg["moveSpeed"] * spd
   }
 
   # move back
-  if (key == cfg["KEY_MOVB"]) {
-    newPosX = posX - dirX * cfg["moveSpeed"]
-    newPosY = posY - dirY * cfg["moveSpeed"]
+  if ( (key == cfg["KEY_MOVB"]) || (key == cfg["KEY_MOVBF"]) ) {
+    spd = (key == cfg["KEY_MOVBF"]) ? 2 : 1
+    newPosX = posX - dirX * cfg["moveSpeed"] * spd
+    newPosY = posY - dirY * cfg["moveSpeed"] * spd
   }
 
   # move left (strafe)
-  if (key == cfg["KEY_MOVL"]) {
-    newPosX = posX - dirY * cfg["moveSpeed"]
-    newPosY = posY + dirX * cfg["moveSpeed"]
+  if ( (key == cfg["KEY_MOVL"]) || (key == cfg["KEY_MOVLF"]) ) {
+    spd = (key == cfg["KEY_MOVLF"]) ? 2 : 1
+    newPosX = posX - dirY * cfg["moveSpeed"] * spd
+    newPosY = posY + dirX * cfg["moveSpeed"] * spd
   }
 
   # move right (strafe)
-  if (key == cfg["KEY_MOVR"]) {
-    newPosX = posX + dirY * cfg["moveSpeed"]
-    newPosY = posY - dirX * cfg["moveSpeed"]
+  if ( (key == cfg["KEY_MOVR"]) || (key == cfg["KEY_MOVRF"]) ) {
+    spd = (key == cfg["KEY_MOVRF"]) ? 2 : 1
+    newPosX = posX + dirY * cfg["moveSpeed"] * spd
+    newPosY = posY - dirX * cfg["moveSpeed"] * spd
   }
 
   # minimap location
@@ -96,5 +82,4 @@ function event(key) {
   if (key == cfg["KEY_SHADE"]) {
     cfg["shade"] = cfg["shade"] ? 0 : 1
   }
-
 }
