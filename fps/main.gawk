@@ -2,11 +2,10 @@
 
 @include "lib/2d.gawk"
 @include "lib/xpm2.gawk"
+@include "lib/math.gawk"
 @include "fps/input.gawk"
 @include "fps/sprite.gawk"
 @include "fps/raycast.gawk"
-
-function floor(n,    x) { x=int(n); return(x==n || n>0) ? x : x-1 }
 
 function sortDist(i1, v1, i2, v2) { return (v2["dist"] - v1["dist"]) }
 
@@ -14,7 +13,7 @@ function darken(col, val,    arr) {
   if (cfg["shade"]) {
     val = (val > 1) ? val : 1
     if (split(col, arr, ";") == 3)
-      return sprintf("%d;%d;%d", min(255,arr[1]/val), min(255,arr[2]/val), min(255,arr[3]/val))
+      return sprintf("%d;%d;%d", math::min(255,arr[1]/val), math::min(255,arr[2]/val), math::min(255,arr[3]/val))
   }
   return col
 }
@@ -34,13 +33,13 @@ function miniMap(scr, map, posX,posY, offsetX, offsetY,    x,y, w, c) {
         if (w in wall) c = wall[w]
         else c = (w == " ") ? COL_BLACK : COL_GRAY
 
-        pixel(scr, offsetX+x, offsetY+y, c)
-      } else pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
+        glib::pixel(scr, offsetX+x, offsetY+y, c)
+      } else glib::pixel(scr, offsetX+x, offsetY+y, COL_BLACK)
     }
   }
 
   # draw player pixel
-  pixel(scr, offsetX,offsetY, COL_LMAGENTA)
+  glib::pixel(scr, offsetX,offsetY, COL_LMAGENTA)
 }
 
 
@@ -204,7 +203,7 @@ BEGIN {
   ## load config
   loadCfg(cfg, "fps.cfg")
 
-  init(scr, cfg["width"],cfg["height"])
+  glib::init(scr, cfg["width"],cfg["height"])
 
   texWidth = 64
   texHeight = 64
@@ -227,24 +226,24 @@ BEGIN {
   nTextures = split("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mTextures, "")
 
   ## load texture map
-  loadxpm2(tex, "gfx/textures.xpm2")
+  xpm2::load(tex, "gfx/textures.xpm2")
 
   ## split up texture map into single textures
   for (i=0; i<114; i+=2) {
     c = mTextures[int(i/2)+1]
     wallTex[c][0] = 0
-    init(wallTex[c], texWidth,texHeight)
-    copy(wallTex[c], tex, 0,0, (i%6)*texWidth,int(i/6)*texHeight)
+    glib::init(wallTex[c], texWidth,texHeight)
+    glib::copy(wallTex[c], tex, 0,0, (i%6)*texWidth,int(i/6)*texHeight)
   }
   delete(tex)
 
   ## load spritemap
-  loadxpm2(spr, "gfx/sprites.xpm2")
+  xpm2::load(spr, "gfx/sprites.xpm2")
 
   for (i=0; i<50; i++) {
     sprite[i][0] = 0
-    init(sprite[i], texWidth, texHeight)
-    copy(sprite[i], spr, 0,0, (i%5)*(texWidth+1),int(i/5)*(texHeight+1))
+    glib::init(sprite[i], texWidth, texHeight)
+    glib::copy(sprite[i], spr, 0,0, (i%5)*(texWidth+1),int(i/5)*(texHeight+1))
     sprite[i]["transparent"] = "152;0;136"; # #980088 / cyan
   }
   delete(spr)
@@ -257,17 +256,17 @@ BEGIN {
   ##
   ## main loop
   ##
-  cursor("off")
+  glib::cursor("off")
 
   while ("awk" != "difficult") {
     # ceiling and floor
     for (y=0; y<scr["height"]/2; y++) {
       c = darken(COL_DGRAY, y/25+1)
-      hline(scr, 0,y, scr["width"], c)
+      glib::hline(scr, 0,y, scr["width"], c)
     }
     for (y=scr["height"]/2; y<scr["height"]; y++) {
       c = darken(COL_FLOOR, (scr["height"]-y)/25+1)
-      hline(scr, 0,y, scr["width"], c)
+      glib::hline(scr, 0,y, scr["width"], c)
     }
 
     ##
@@ -275,7 +274,6 @@ BEGIN {
     ##
 
     raycast(scr)
-
 
     ##
     ## Sprites
@@ -296,7 +294,7 @@ BEGIN {
     miniMap(scr, worldMap, posX, posY, mmPosX, mmPosY)
 
     # draw screenbuffer to terminal
-    draw(scr, -1,1)
+    glib::draw(scr, -1,1)
 
     ## handle user input
     key = input()

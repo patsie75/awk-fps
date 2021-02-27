@@ -9,4 +9,4 @@ saved="$("$stty" -g)"
 trap _exit EXIT
 
 #/usr/bin/gawk -f ./fps.gawk
-/usr/local/bin/gawk5 -f ./fps/main.gawk
+/usr/bin/gawk -f ./fps/main.gawk

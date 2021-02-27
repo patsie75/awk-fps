@@ -1,18 +1,12 @@
 #!/usr/bin/gawk -f
 
 @include "lib/draw.gawk"
+@include "lib/math.gawk"
 
-function abs(i) { return( (i<0) ? -i : i ) }
-function max(a,b) { return( (a>b) ? a : b ) }
-function min(a,b) { return( (a<b) ? a : b ) }
+@namespace "glib"
 
 ## Draw a pixel of color "col" on position (x,y) on "canvas"
 function pixel(scr, x, y, col,   x0,y0) {
-  #printf("pixel(%d,%d) [%.5f,%.5f]\n", shortint(x),shortint(y), x,y )
-  #scr[int(y)*scr["width"] + int(x)] = col
-  #scr[shortint(y)*scr["width"] + shortint(x)] = col
-  #scr[int(y+0.0001)*scr["width"] + int(x+0.0001)] = col
-
   x0 = int(x+0.0001)
   y0 = int(y+0.0001)
   if ((0 <= x0 && x0 < scr["width"]) && (0 <= y0 && y0 < scr["height"])) {
@@ -39,7 +33,7 @@ function vline(scr, x1,y1, len, col,   i, l) {
 function line(scr, x1,y1,x2,y2, col,   direction, a1,a2,b1,b2, tmp, i,j, m) {
   #printf("line2(): (%d,%d),(%d,%d)\n", x1,y1, x2,y2)
 
-  if (abs(x1-x2) >= abs(y1-y2)) {
+  if (math::abs(x1-x2) >= math::abs(y1-y2)) {
     # horizontal line
     direction = 1
     a1=x1; a2=x2; b1=y1; b2=y2

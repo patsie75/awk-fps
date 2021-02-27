@@ -1,5 +1,7 @@
 #!/usr/bin/gawk -f
 
+@namespace "glib"
+
 BEGIN {
   "tput cols"  | getline terminal["width"]
   "tput lines" | getline terminal["height"]

@@ -1,3 +1,4 @@
+@include "lib/2d.gawk"
 
 function input() {
   cmd = "dd bs=1 count=1 2>/dev/null"
@@ -11,7 +12,7 @@ function input() {
 function event(key) {
   # exit
   if (key == cfg["KEY_QUIT"]) {
-    cursor("on")
+    glib::cursor("on")
     exit 0
   }
 

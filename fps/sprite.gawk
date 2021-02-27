@@ -1,3 +1,6 @@
+@include "lib/math.gawk"
+@include "lib/2d.gawk"
+
 function drawSprite(scr, i) {
 #printf("object[%s][sprite] = [%s]\n", i, object[i]["sprite"])
       spriteX = object[i]["x"] - posX
@@ -14,17 +17,17 @@ function drawSprite(scr, i) {
       spriteScreenX = int((scr["width"] / 2) * (1 + transformX / transformY));
 
       # calculate height of the sprite on screen
-      spriteHeight = abs(int(scr["height"] / transformY)); # using 'transformY' instead of the real distance prevents fisheye
+      spriteHeight = math::abs(int(scr["height"] / transformY)); # using 'transformY' instead of the real distance prevents fisheye
       # calculate lowest and highest pixel to fill in current stripe
       drawStartY = (-spriteHeight / 2) + (scr["height"] / 2)
       if (drawStartY < 0) drawStartY = 0
       #drawEndY = (spriteHeight / 2) + (scr["height"] / 2) - 1
-      #drawEndY = max(sprite[obj[i]["sprite"]]["height"], (spriteHeight / 2) + (scr["height"] / 2) - 1)
-      drawEndY = max(sprite[obj[i]["sprite"]]["height"], (spriteHeight + scr["height"]) / 2 - 1)
+      #drawEndY = math::max(sprite[obj[i]["sprite"]]["height"], (spriteHeight / 2) + (scr["height"] / 2) - 1)
+      drawEndY = math::max(sprite[obj[i]["sprite"]]["height"], (spriteHeight + scr["height"]) / 2 - 1)
       if (drawEndY > scr["height"]) drawEndY = scr["height"]
 
       # calculate width of the sprite
-      spriteWidth = abs( int(scr["height"] / transformY))
+      spriteWidth = math::abs( int(scr["height"] / transformY))
       drawStartX = int( (-spriteWidth / 2) + spriteScreenX)
       if (drawStartX < 0) drawStartX = 0
       drawEndX = (spriteWidth / 2) + spriteScreenX
@@ -51,7 +54,7 @@ function drawSprite(scr, i) {
               tmp = (object[i]["dist"] > 1) ? object[i]["dist"] : 1
               c = darken(c, tmp/5)
 
-              pixel(scr, stripe, y, c)
+              glib::pixel(scr, stripe, y, c)
             }
           }
         }

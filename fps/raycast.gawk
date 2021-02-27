@@ -1,3 +1,6 @@
+@include "lib/math.gawk"
+@include "lib/2d.gawk"
+
 function raycast(src) {
     # start raycast
     for (x=0; x<scr["width"]; x++) {
@@ -15,8 +18,8 @@ function raycast(src) {
 #printf("x: %d, cam: %.2f, rayDir {%.2f,%.2f}, map {%d,%d}\n", x, cameraX, rayDirX, rayDirY, mapX, mapY)
 
       # length of ray from one x or y-side to next x or y-side
-      deltaDistX = (rayDirY == 0) ? 0 : ((rayDirX == 0) ? 1 : abs(1 / rayDirX))
-      deltaDistY = (rayDirX == 0) ? 0 : ((rayDirY == 0) ? 1 : abs(1 / rayDirY))
+      deltaDistX = (rayDirY == 0) ? 0 : ((rayDirX == 0) ? 1 : math::abs(1 / rayDirX))
+      deltaDistY = (rayDirX == 0) ? 0 : ((rayDirY == 0) ? 1 : math::abs(1 / rayDirY))
 
       hit = 0
 
@@ -88,7 +91,7 @@ function raycast(src) {
       # calculate value of wallX
       if (side == 0) wallX = posY + perpWallDist * rayDirY
       else           wallX = posX + perpWallDist * rayDirX
-      wallX -= floor(wallX)
+      wallX -= math::floor(wallX)
 
       # x coordinate on the texture
       texX = int(wallX * texWidth)
@@ -114,7 +117,7 @@ function raycast(src) {
         else color = darken(color, tmp/2)
 
         ## draw final pixel to buffer
-        pixel(scr, x,y, color)
+        glib::pixel(scr, x,y, color)
       }
 
       ZBuffer[x] = perpWallDist;

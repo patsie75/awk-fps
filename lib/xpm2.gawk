@@ -1,6 +1,8 @@
 #!/usr/bin/gawk -f
 
-function loadxpm2(dst, fname,   w,h, nrcolors,charsppx, col,color,data, i,pix, line) {
+@namespace "xpm2"
+
+function load(dst, fname,   w,h, nrcolors,charsppx, col,color,data, i,pix, line) {
   # read header "! XPM2"
   if ( ((getline < fname) < 1) || ($0 != "! XPM2") ) { close(fname); return(0); }
 
