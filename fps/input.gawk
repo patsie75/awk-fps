@@ -1,10 +1,9 @@
 @include "lib/2d.gawk"
 
 function input() {
-  cmd = "dd bs=1 count=1 2>/dev/null"
-  cmd | getline key
+  cmd = cfg["input"] ? cfg["input"] : "timeout --foreground 1 dd bs=1 count=1 2>/dev/null"
+  if ((cmd | getline key) < 1) key=""
   close(cmd)
-
   return(key)
 }
 
